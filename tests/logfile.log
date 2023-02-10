@@ -90,3 +90,108 @@
 2023-02-10 08:03:50,916 :INFO : test_create_new_group :1. Go to the [App] tab.
 2023-02-10 08:03:55,324 :INFO : test_create_new_group :2. Hover over [+Add new group] button.
 2023-02-10 08:03:56,616 :INFO : test_create_new_group :3. Click the [Group] option.
+2023-02-10 10:25:57,535 :INFO : test_adding_image_map_item :1. Select [Group1] in the groups list.
+2023-02-10 10:26:00,348 :INFO : test_adding_image_map_item :2. Click the [Image Map] option, enter image map's item name and save.
+2023-02-10 10:31:39,810 :INFO : test_selecting_image_map_image :1. Select [image_map] chatflow item in [group1].
+2023-02-10 10:31:42,873 :INFO : test_selecting_image_map_image :2. Click the camera icon of the [image_map] chatflow item.
+2023-02-10 10:31:46,135 :INFO : test_selecting_image_map_image :3. Select and upload an image for your image map.
+2023-02-10 10:52:24,657 :INFO : test_setting_up_imagemap :1. Select [image_map] chatflow item in [group1].
+2023-02-10 10:52:24,777 :INFO : test_setting_up_imagemap :2. Click on the edit button (brush)
+2023-02-10 10:52:24,944 :INFO : test_setting_up_imagemap :3. Click the image map image you have uploaded in the opened popup.
+2023-02-10 11:01:45,107 :INFO : test_setting_up_imagemap :1. Select [image_map] chatflow item in [group1].
+2023-02-10 11:01:46,166 :INFO : test_setting_up_imagemap :2. Click on the edit button (brush)
+2023-02-10 11:01:46,232 :INFO : test_setting_up_imagemap :3. Click the image map image you have uploaded in the opened popup.
+2023-02-10 11:03:43,017 :INFO : test_setting_up_imagemap :1. Select [image_map] chatflow item in [group1].
+2023-02-10 11:03:44,128 :INFO : test_setting_up_imagemap :2. Click on the edit button (brush)
+2023-02-10 11:03:44,204 :INFO : test_setting_up_imagemap :3. Click the image map image you have uploaded in the opened popup.
+2023-02-10 11:06:01,455 :INFO : test_setting_up_imagemap :1. Select [image_map] chatflow item in [group1].
+2023-02-10 11:06:02,558 :INFO : test_setting_up_imagemap :2. Click on the edit button (brush)
+2023-02-10 11:06:02,640 :INFO : test_setting_up_imagemap :3. Click the image map image you have uploaded in the opened popup.
+2023-02-10 11:18:18,069 :INFO : test_setting_up_imagemap :1. Select [image_map] chatflow item in [group1].
+2023-02-10 11:18:19,149 :INFO : test_setting_up_imagemap :2. Click on the edit button (brush)
+2023-02-10 11:18:19,243 :INFO : test_setting_up_imagemap :3. Click the image map image you have uploaded in the opened popup.
+2023-02-10 11:18:21,399 :INFO : test_setting_up_imagemap :4. Set [image_map] [Area 1].
+2023-02-10 11:18:23,643 :INFO : test_setting_up_imagemap :5. Set [image_map] [Area 2].
+2023-02-10 11:18:25,851 :INFO : test_setting_up_imagemap :6. Set [image_map] [Area 3].
+2023-02-10 11:18:25,892 :INFO : test_setting_up_imagemap :7. Save the [Area 1] - [Are 3] settings.
+2023-02-10 11:35:58,840 :INFO : test_adding_image_item :1. Select [Group1] in the groups list.
+2023-02-10 11:36:02,093 :INFO : test_adding_image_item :2. Click the [Image] option, enter image's item name and save.
+2023-02-10 11:36:45,682 :INFO : test_selecting_image_item_image :1. Select [image1] chatflow item in [group1].
+2023-02-10 11:36:48,801 :INFO : test_selecting_image_item_image :2. Click the camera icon of the [image1] chatflow item.
+2023-02-10 11:36:52,097 :INFO : test_selecting_image_item_image :3. Select and upload an image for your image item.
+2023-02-10 11:37:45,950 :INFO : test_selecting_image_item_image :1. Select [image1] chatflow item in [group1].
+2023-02-10 11:37:49,033 :INFO : test_selecting_image_item_image :2. Click the camera icon of the [image1] chatflow item.
+2023-02-10 11:37:54,323 :INFO : test_selecting_image_item_image :3. Select and upload an image for your image item.
+2023-02-10 11:48:49,820 :INFO : test_adding_reaction_button_image_item :1. Select [image1] chatflow item in [group1].
+2023-02-10 11:48:50,003 :INFO : test_adding_reaction_button_image_item :2. Click the [Quick reaction] option of [image1] chatflow item.
+2023-02-10 11:48:50,155 :INFO : test_adding_reaction_button_image_item :3. Enter the new [Quick reaction] button's name and save.
+2023-02-10 11:52:17,824 :INFO : test_adding_video_items :1. Select [Group1] in the groups list.
+2023-02-10 11:52:20,599 :INFO : test_adding_video_items :2. Click the [Video] option, enter image's item name and save.
+2023-02-10 11:54:41,396 :INFO : test_adding_reaction_button_video_item :1. Select [video1] chatflow item in [group1].
+2023-02-10 11:54:41,494 :INFO : test_adding_reaction_button_video_item :2. Click the [Quick reaction] option of [video1] chatflow item.
+2023-02-10 11:54:41,834 :INFO : test_adding_reaction_button_video_item :3. Enter the new [Quick reaction] button's name and save.
+2023-02-10 12:09:49,946 :INFO : test_selecting_image_and_video_for_video_item :1. Select [video1] chatflow item in [group1].
+2023-02-10 12:11:03,490 :INFO : test_selecting_image_and_video_for_video_item :1. Select [video1] chatflow item in [group1].
+2023-02-10 12:12:06,197 :INFO : test_selecting_image_and_video_for_video_item :1. Select [video1] chatflow item in [group1].
+2023-02-10 12:13:05,234 :INFO : test_selecting_image_and_video_for_video_item :1. Select [video1] chatflow item in [group1].
+2023-02-10 12:15:28,205 :INFO : test_selecting_image_and_video_for_video_item :1. Select [video1] chatflow item in [group1].
+2023-02-10 12:25:23,050 :INFO : test_selecting_image_and_video_for_video_item :1. Select [video1] chatflow item in [group1].
+2023-02-10 12:26:47,260 :INFO : test_adding_video_item :1. Select [Group1] in the groups list.
+2023-02-10 12:26:49,938 :INFO : test_adding_video_item :2. Click the [Video] option, enter image's item name and save.
+2023-02-10 12:28:18,855 :INFO : test_adding_video_item :1. Select [Group1] in the groups list.
+2023-02-10 12:28:21,466 :INFO : test_adding_video_item :2. Click the [Video] option, enter image's item name and save.
+2023-02-10 12:34:51,685 :INFO : test_adding_video_item :1. Select [Group1] in the groups list.
+2023-02-10 12:34:54,548 :INFO : test_adding_video_item :2. Click the [Video] option, enter image's item name and save.
+2023-02-10 12:37:18,880 :INFO : test_adding_video_item :1. Select [Group1] in the groups list.
+2023-02-10 12:37:21,701 :INFO : test_adding_video_item :2. Click the [Video] option, enter image's item name and save.
+2023-02-10 12:38:03,404 :INFO : test_selecting_image_and_video_for_video_item :1. Select [video1] chatflow item in [group1].
+2023-02-10 12:41:53,289 :INFO : test_adding_reaction_button_video_item1 :1. Select [video1] chatflow item in [group1].
+2023-02-10 12:41:53,378 :INFO : test_adding_reaction_button_video_item1 :2. Click the [Quick reaction] option of [video1] chatflow item.
+2023-02-10 12:41:53,523 :INFO : test_adding_reaction_button_video_item1 :3. Enter the new [Quick reaction] button's name and save.
+2023-02-10 12:43:34,840 :INFO : test_adding_video_item2 :1. Select [Group1] in the groups list.
+2023-02-10 12:43:37,585 :INFO : test_adding_video_item2 :2. Click the [Video] option, enter image's item name and save.
+2023-02-10 12:44:24,913 :INFO : test_adding_reaction_button_video_item2 :1. Select [video1] chatflow item in [group1].
+2023-02-10 12:44:24,984 :INFO : test_adding_reaction_button_video_item2 :2. Click the [Quick reaction] option of [video1] chatflow item.
+2023-02-10 12:47:00,407 :INFO : test_adding_reaction_button_video_item2 :1. Select [video2] chatflow item in [group1].
+2023-02-10 12:47:00,488 :INFO : test_adding_reaction_button_video_item2 :2. Click the [Quick reaction] option of [video1] chatflow item.
+2023-02-10 12:53:42,658 :INFO : test_adding_reaction_button_video_item2 :1. Select [video2] chatflow item in [group1].
+2023-02-10 12:53:42,818 :INFO : test_adding_reaction_button_video_item2 :2. Click the [Quick reaction] option of [video1] chatflow item.
+2023-02-10 12:54:33,649 :INFO : test_adding_reaction_button_video_item2 :1. Select [video2] chatflow item in [group1].
+2023-02-10 12:54:33,724 :INFO : test_adding_reaction_button_video_item2 :2. Click the [Quick reaction] option of [video1] chatflow item.
+2023-02-10 12:56:29,136 :INFO : test_adding_reaction_button_video_item2 :1. Select [video2] chatflow item in [group1].
+2023-02-10 12:56:49,611 :INFO : test_adding_reaction_button_video_item2 :2. Click the [Quick reaction] option of [video1] chatflow item.
+2023-02-10 12:58:53,747 :INFO : test_adding_reaction_button_video_item2 :1. Select [video2] chatflow item in [group1].
+2023-02-10 12:58:53,817 :INFO : test_adding_reaction_button_video_item2 :2. Click the [Quick reaction] option of [video2] chatflow item.
+2023-02-10 12:58:53,964 :INFO : test_adding_reaction_button_video_item2 :3. Enter the new [Quick reaction] button's name and save.
+2023-02-10 13:49:28,574 :INFO : test_adding_video_item2 :1. Select [Group1] in the groups list.
+2023-02-10 13:49:31,439 :INFO : test_adding_video_item2 :2. Click the [Video] option, enter image's item name and save.
+2023-02-10 13:50:32,733 :INFO : test_adding_reaction_button_video_item2 :1. Select [video2] chatflow item in [group1].
+2023-02-10 13:50:32,792 :INFO : test_adding_reaction_button_video_item2 :2. Click the [Quick reaction] option of [video2] chatflow item.
+2023-02-10 13:50:32,960 :INFO : test_adding_reaction_button_video_item2 :3. Enter the new [Quick reaction] button's name and save.
+2023-02-10 14:25:34,962 :INFO : test_selecting_image_and_video_for_video_using_link :1. Select [video2] chatflow item in [group1].
+2023-02-10 14:25:36,037 :INFO : test_selecting_image_and_video_for_video_using_link :2. Click the [image link] icon of [video2] chatflow action.
+2023-02-10 14:26:50,519 :INFO : test_selecting_image_and_video_for_video_using_link :1. Select [video2] chatflow item in [group1].
+2023-02-10 14:26:51,592 :INFO : test_selecting_image_and_video_for_video_using_link :2. Click the [image link] icon of [video2] chatflow action.
+2023-02-10 14:30:01,637 :INFO : test_selecting_image_and_video_for_video_using_link :1. Select [video2] chatflow item in [group1].
+2023-02-10 14:30:35,500 :INFO : test_selecting_image_and_video_for_video_using_link :2. Click the [image link] icon of [video2] chatflow action.
+2023-02-10 14:34:01,916 :INFO : test_selecting_image_and_video_for_video_using_link :1. Select [video2] chatflow item in [group1].
+2023-02-10 14:34:03,116 :INFO : test_selecting_image_and_video_for_video_using_link :2. Click the [image link] icon of [video2] chatflow action.
+2023-02-10 14:37:41,356 :INFO : test_selecting_image_and_video_for_video_using_link :1. Select [video2] chatflow item in [group1].
+2023-02-10 14:37:42,471 :INFO : test_selecting_image_and_video_for_video_using_link :2. Click the [image link] icon of [video2] chatflow action.
+2023-02-10 14:40:00,154 :INFO : test_selecting_image_and_video_for_video_using_link :1. Select [video2] chatflow item in [group1].
+2023-02-10 14:40:01,243 :INFO : test_selecting_image_and_video_for_video_using_link :2. Click the [image link] icon of [video2] chatflow action.
+2023-02-10 14:47:52,236 :INFO : test_adding_conditional_item :1. Select [Group1] in the groups list.
+2023-02-10 14:47:55,207 :INFO : test_adding_conditional_item :2. Click the [Condition] option, enter condition's item name and save.
+2023-02-10 15:03:08,134 :INFO : test_setting_up_conditional_item :1. Select [conditional] chatflow item in [group1].
+2023-02-10 15:05:27,000 :INFO : test_setting_up_conditional_item :1. Select [conditional] chatflow item in [group1].
+2023-02-10 15:07:13,325 :INFO : test_setting_up_conditional_item :1. Select [conditional] chatflow item in [group1].
+2023-02-10 15:28:57,516 :INFO : test_setting_up_conditional_item :1. Select [conditional] chatflow item in [group1].
+2023-02-10 15:31:07,732 :INFO : test_setting_up_conditional_item :1. Select [conditional] chatflow item in [group1].
+2023-02-10 15:33:08,513 :INFO : test_setting_up_conditional_item :1. Select [conditional] chatflow item in [group1].
+2023-02-10 15:39:25,367 :INFO : test_adding_conditional_item :1. Select [Group1] in the groups list.
+2023-02-10 15:39:28,288 :INFO : test_adding_conditional_item :2. Click the [Condition] option, enter condition's item name and save.
+2023-02-10 15:40:01,233 :INFO : test_setting_up_conditional_item :1. Select [conditional] chatflow item in [group1].
+2023-02-10 15:40:03,422 :INFO : test_setting_up_conditional_item :2. Select [conditional] chatflow item in [group1].
+2023-02-10 15:40:03,562 :INFO : test_setting_up_conditional_item :3. Select [conditional] chatflow item in [group1].
+2023-02-10 15:40:03,749 :INFO : test_setting_up_conditional_item :4. Select [conditional] chatflow item in [group1].
+2023-02-10 15:40:03,938 :INFO : test_setting_up_conditional_item :4. Select [conditional] chatflow item in [group1].

@@ -1,5 +1,7 @@
 import time
 import pytest
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
@@ -55,19 +57,19 @@ class TestCasesGroup1(BaseClass):
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
         log.info("1. Select [group1] in the groups list.")
-        appTab.selectTextitem1()
+        appTab.selectActionItem(Group1[0]["item_name"])
         log.info("2. Select [textitem1] in the [group1] actions list.")
         appTab.enterTextItemsText(Group1[0]["item_xpath"], Group1[0]["item_content"])
         log.info("3. Enter [text1] in the text field of the [textitem1] and press [Enter].")
-        appTab.selectTextitem2()
+        appTab.selectActionItem(Group1[1]["item_name"])
         log.info("4. Select [textitem2] in the [group1] actions list.")
         appTab.enterTextItemsText(Group1[1]["item_xpath"], Group1[1]["item_content"])
         log.info("5. Enter [text2] in the text field of the [textitem2] and press [Enter].")
-        appTab.selectTextitem3()
+        appTab.selectActionItem(Group1[2]["item_name"])
         log.info("6. Select [textitem3] in the [group1] actions list.")
         appTab.enterTextItemsText(Group1[2]["item_xpath"], Group1[2]["item_content"])
         log.info("7. Enter [text3] in the text field of the [textitem3] and press [Enter].")
-        appTab.selectTextitem4()
+        appTab.selectActionItem(Group1[3]["item_name"])
         log.info("8. Select [textitem4] in the [group1] actions list.")
         appTab.enterTextItemsText(Group1[3]["item_xpath"], Group1[3]["item_content"])
         log.info("9. Enter [text4] in the text field of the [textitem4] and press [Enter].")
@@ -81,7 +83,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectTextitem1()
+        appTab.selectActionItem(Group1[0]["item_name"])
         appTab.clickBigButton(Group1[0]["item_big_button"])
         log.info("1. Click the [+ Add new button] option.")
         appTab.enterButtonsName(Group1[0]["item_big_button_name"])
@@ -100,7 +102,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectTextitem2()
+        appTab.selectActionItem(Group1[1]["item_name"])
         appTab.clickQuickReactionButton(Group1[1]["item_quick_reaction_button"])
         log.info("1. Click the [Quick reply] button of [textitem2].")
         appTab.enterButtonsName("choice1")
@@ -140,7 +142,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectTextitem3()
+        appTab.selectActionItem(Group1[2]["item_name"])
         appTab.clickTextHandlerButton(Group1[2]["item_text_handler_button"])
         log.info("1. Click the [Text handler] button of [textitem3].")
         appTab.selectMatchingType(Group1[2]["item_matching_type"])
@@ -164,7 +166,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectTextitem4()
+        appTab.selectActionItem(Group1[3]["item_name"])
         appTab.clickFileHandlerButton(Group1[3]["item_file-handler"])
         log.info("1. Click the [File handler] button of [textitem3].")
         appTab.saveSettings()
@@ -188,7 +190,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectCarousel1()
+        appTab.selectActionItem(Group1[4]["item_name"])
         log.info("1. Select [carousel1] chatflow item in [group1].")
         appTab.selectDataSourceAPI(Group1[4]["item_api_data_source"])
         time.sleep(1)
@@ -197,14 +199,13 @@ class TestCasesGroup1(BaseClass):
         time.sleep(8)
         log.info("3. Set [https://pre.bonp.me/api/service/recipes/?format=list] as the API URL and press Enter.")
 
-
     def test_adding_big_button_carousel1(self):
         log = self.getLogs()
         self.accessAppTab()
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectCarousel1()
+        appTab.selectActionItem(Group1[4]["item_name"])
         log.info("1. Select [carousel1] chatflow item in [group1].")
         appTab.clickBigButton(Group1[4]["item_big_button"])
         log.info("2. Click the [+ Add new button] option of [carousel1] chatflow item.")
@@ -219,7 +220,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectCarousel2()
+        appTab.selectActionItem(Group1[5]["item_name"])
         log.info("1. Select [carousel2] chatflow item in [group1].")
         appTab.selectDataSourceContent(Group1[5]["item_content_data_source"])
         log.info("2. Select [Content] data source option.")
@@ -233,7 +234,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectCarousel2()
+        appTab.selectActionItem(Group1[5]["item_name"])
         log.info("1. Select [carousel2] chatflow item in [group1].")
         appTab.clickQuickReactionButton(Group1[5]["item_quick_reaction_button"])
         log.info("2. Click the [Quick reaction] option of [carousel2] chatflow item.")
@@ -258,7 +259,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectImageCarousel()
+        appTab.selectActionItem(Group1[6]["item_name"])
         log.info("1. Select [image_carousel] chatflow item in [group1].")
         appTab.selectDataSourceContent(Group1[6]["item_content_data_source"])
         log.info("2. Select [Content] data source option.")
@@ -272,7 +273,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectImageCarousel()
+        appTab.selectActionItem(Group1[6]["item_name"])
         log.info("1. Select [carousel2] chatflow item in [group1].")
         appTab.clickBigButton(Group1[6]["item_big_button"])
         log.info("2. Click the [+ Add new button] option of [carousel1] chatflow item.")
@@ -296,13 +297,17 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectFlexMessage()
+        appTab.selectActionItem(Group1[7]["item_name"])
+        log.info("1. Select [flex_message] chatflow item in [group1].")
         time.sleep(2)
         appTab.clickAddFlexMessageContent(Group1[7]["item_add_content"])
         time.sleep(1)
+        log.info("2. Click the [Add content of Flex message] link.")
         appTab.addFlexMessageContent()
+        log.info("3. Enter a valid JSON-code in the [Flex Editor] textarea.")
         appTab.saveFlexMessage()
-        time.sleep(3)
+        log.info("4. Save the [flex_message] content.")
+        time.sleep(2)
 
     def test_adding_quick_reaction_buttons_for_flex_message(self):
         log = self.getLogs()
@@ -310,7 +315,7 @@ class TestCasesGroup1(BaseClass):
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
-        appTab.selectFlexMessage()
+        appTab.selectActionItem(Group1[7]["item_name"])
         log.info("1. Select [flex_message] chatflow item in [group1].")
         appTab.clickQuickReactionButton(Group1[7]["item_quick_reaction_button"])
         log.info("2. Click the [Quick reaction] option of [carousel2] chatflow item.")
@@ -320,8 +325,243 @@ class TestCasesGroup1(BaseClass):
         time.sleep(1)
 
     def test_adding_image_map_item(self):
+        log = self.getLogs()
         self.accessAppTab()
         Group1 = Group1TestData.MyGroup1Items
         appTab = AppTab(self.driver)
         appTab.selectGroup1()
+        log.info("1. Select [Group1] in the groups list.")
         appTab.addImageMapItem(Group1[8]["item_name"])
+        log.info("2. Click the [Image Map] option, enter image map's item name and save.")
+
+    def test_selecting_image_map_item_image(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[8]["item_name"])
+        log.info("1. Select [image_map] chatflow item in [group1].")
+        time.sleep(2)
+        appTab.clickCameraIcon(Group1[8]["item_camera_icon"])
+        time.sleep(1)
+        log.info("2. Click the camera icon of the [image_map] chatflow item.")
+        appTab.uploadImageMapItemImage()
+        time.sleep(3)
+        log.info("3. Select and upload an image for your image map.")
+
+    def test_setting_up_imagemap(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[8]["item_name"])
+        log.info("1. Select [image_map] chatflow item in [group1].")
+        appTab.clickBrushIcon(Group1[8]["item_brush_icon"])
+        time.sleep(1)
+        log.info("2. Click on the edit button (brush)")
+        appTab.clickImageMapImage()
+        log.info("3. Click the image map image you have uploaded in the opened popup.")
+        appTab.setImageMapArea1()
+        log.info("4. Set [image_map] [Area 1].")
+        appTab.clickImageMapImage()
+        appTab.setImageMapArea2()
+        log.info("5. Set [image_map] [Area 2].")
+        appTab.clickImageMapImage()
+        appTab.setImageMapArea3()
+        log.info("6. Set [image_map] [Area 3].")
+        appTab.saveImageImapArea()
+        log.info("7. Save the settings.")
+        time.sleep(2)
+
+    def test_setting_transitions_for_imagemap_areas(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[8]["item_name"])
+        log.info("1. Select [image_map] chatflow item in [group1].")
+        ###########Add area's settings
+
+    def test_adding_image_item(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        log.info("1. Select [Group1] in the groups list.")
+        appTab.addImageItem(Group1[9]["item_name"])
+        log.info("2. Click the [Image] option, enter image's item name and save.")
+
+    def test_selecting_image_item_image(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[9]["item_name"])
+        log.info("1. Select [image1] chatflow item in [group1].")
+        time.sleep(2)
+        appTab.clickCameraIcon(Group1[9]["item_camera_icon"])
+        time.sleep(1)
+        log.info("2. Click the camera icon of the [image1] chatflow item.")
+        appTab.uploadImageItemImage()
+        time.sleep(5)
+        log.info("3. Select and upload an image for your image item.")
+
+    def test_adding_reaction_button_image_item(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[9]["item_name"])
+        log.info("1. Select [image1] chatflow item in [group1].")
+        appTab.clickQuickReactionButton(Group1[9]["item_quick_reaction_button"])
+        log.info("2. Click the [Quick reaction] option of [image1] chatflow item.")
+        appTab.enterButtonsName(Group1[9]["item_quick_reaction_button_name"])
+        appTab.saveSettings()
+        log.info("3. Enter the new [Quick reaction] button's name and save.")
+        time.sleep(1)
+
+    def test_adding_video_item1(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        log.info("1. Select [Group1] in the groups list.")
+        appTab.addVideoItem(Group1[10]["item_name"])
+        log.info("2. Click the [Video] option, enter video's item name and save.")
+
+    def test_selecting_image_and_video_for_video_using_upload(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[10]["item_name"])
+        log.info("1. Select [video1] chatflow item in [group1].")
+        appTab.clickCameraIcon(Group1[10]["item_camera_icon"])
+        time.sleep(2)
+        log.info("2. Click the [camera] icon of [video1] chatflow action.")
+        appTab.uploadVideoItemImage()
+        time.sleep(4)
+        log.info("3. Upload a thumbnail image for [video1] chatflow action.")
+        appTab.clickVideoCameraIcon(Group1[10]["item_video_camera_icon"])
+        time.sleep(2)
+        log.info("4. Click the [video camera] icon of [video1] chatflow action.")
+        appTab.uploadVideoItemVideo()
+        WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "//li/video")))
+        log.info("5. Upload a video for [video1] chatflow action.")
+
+    def test_adding_reaction_button_video_item1(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[10]["item_name"])
+        log.info("1. Select [video1] chatflow item in [group1].")
+        appTab.clickQuickReactionButton(Group1[10]["item_quick_reaction_button"])
+        log.info("2. Click the [Quick reaction] option of [video1] chatflow item.")
+        appTab.enterButtonsName(Group1[10]["item_quick_reaction_button_name"])
+        appTab.saveSettings()
+        time.sleep(1)
+        log.info("3. Enter the new [Quick reaction] button's name and save.")
+
+    def test_adding_video_item2(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        log.info("1. Select [Group1] in the groups list.")
+        appTab.addVideoItem(Group1[11]["item_name"])
+        log.info("2. Click the [Video] option, enter video's item name and save.")
+
+    def test_selecting_image_and_video_for_video_using_link(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[11]["item_name"])
+        time.sleep(2)
+        log.info("1. Select [video2] chatflow item in [group1].")
+        appTab.clickImageLinkIcon(Group1[11]["item_image_link_icon"])
+        time.sleep(1)
+        log.info("2. Click the [image link] icon of [video2] chatflow action.")
+        appTab.uploadVideoItemImageByLink(Group1[11]["item_image_link_input"])
+        log.info("3. Paste image link for [video2] chatflow action.")
+        time.sleep(4)
+        appTab.clickVideoLinkIcon(Group1[11]["item_video_link_icon"])
+        time.sleep(1)
+        log.info("4. Click the [video link] icon of [video2] chatflow action.")
+        appTab.uploadVideoItemVideoByLink(Group1[11]["item_image_link_input"])
+        log.info("5. Paste video link for [video2] chatflow action.")
+        time.sleep(20)
+
+    def test_adding_reaction_button_video_item2(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[11]["item_name"])
+        log.info("1. Select [video2] chatflow item in [group1].")
+        appTab.clickQuickReactionButton(Group1[11]["item_quick_reaction_button"])
+        log.info("2. Click the [Quick reaction] option of [video2] chatflow item.")
+        appTab.enterButtonsName(Group1[11]["item_quick_reaction_button_name"])
+        appTab.saveSettings()
+        log.info("3. Enter the new [Quick reaction] button's name and save.")
+        time.sleep(1)
+
+    def test_adding_conditional_item(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        log.info("1. Select [Group1] in the groups list.")
+        appTab.addConditionItem(Group1[12]["item_name"])
+        log.info("2. Click the [Condition] option, enter condition's item name and save.")
+
+    def test_setting_up_conditional_item(self):
+        log = self.getLogs()
+        self.accessAppTab()
+        Group1 = Group1TestData.MyGroup1Items
+        appTab = AppTab(self.driver)
+        appTab.selectGroup1()
+        appTab.selectActionItem(Group1[12]["item_name"])
+        log.info("1. Select [conditional] chatflow item in [group1].")
+        appTab.selectIfOption(Group1[12]["item_if_field"], Group1[12]["item_field_options"], Group1[12]["item_if_option_val"])
+        log.info("2. Select [conditional] chatflow item in [group1].")
+        appTab.inputConditionOfConditionalItem(Group1[12]["item_condition_field"], Group1[12]["item_condition_option"])
+        log.info("3. Select [conditional] chatflow item in [group1].")
+        appTab.selectThenAction(Group1[12]["item_then_field"], Group1[12]["item_then_option"])
+        log.info("4. Select [conditional] chatflow item in [group1].")
+        appTab.selectThenAction(Group1[12]["item_else_field"], Group1[12]["item_else_option"])
+        log.info("4. Select [conditional] chatflow item in [group1].")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

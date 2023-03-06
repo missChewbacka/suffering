@@ -49,7 +49,7 @@ class Group1TestData:
         {
             "item_option": "//dd[@rt='card']",
             "item_name": "carousel2",
-            "item_big_button": "(//li[@tp='items'])[17]",
+            "item_big_button": "(//li[@class='item new'])[17]",
             "item_big_button_name1": "save",
             "item_big_button_name2": "reserve",
             "item_content_data_source": "(//b[@class='icon double-right'])[2]",
@@ -83,7 +83,10 @@ class Group1TestData:
             "item_camera_icon": "(//ol[@class='card imagecard seq-0']/i[@class='icon camera large upload-btn'])[17]",
             "item_brush_icon": "(//i[@class='icon brush large upload-btn'])[17]",
             "item_link_icon": "(//i[@class='icon link large upload-btn'])[17]",
-            "item_image_link": "https://anybot-prerelease.s3.amazonaws.com/618_1674651478_0_newfmt.jpg"
+            "item_image_link": "https://anybot-prerelease.s3.amazonaws.com/618_1674651478_0_newfmt.jpg",
+            "item_area1_button": "(//div/div/input[@class='autocomplete'])[11]",
+            "item_area2_button": "(//div/div/input[@class='autocomplete'])[11]",
+            "item_area3_button": "(//div/div/input[@class='autocomplete'])[11]",
         },
         {
             "item_option": "//dd[@rt='image']",
@@ -129,6 +132,12 @@ class Group1TestData:
             "item_else_field": "//input[@target_name='else']",
             "item_else_option": "6:carousel2",
         },
+        {
+            "item_option": "//dd[@rt='flex']",
+            "item_name": "another_flex_message",
+            "item_add_content": "(//ol[@class='card imagecard new flex'])[2]",
+            "item_content": ""
+        },
 
     ]
 
@@ -143,6 +152,51 @@ class Group1TestData:
             "item_option": "//dd[@rt='card']",
             "item_name": "carousel1",
         },"""
+
+
+class EventsTestData:
+    def __init__(self, driver):
+        self.driver = driver
+
+    myEvent = [
+        {"event-url": "https://www.udemy.com/",
+         "event-title": "Test Event1",
+         "event-desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque vitae arcu turpis. Morbi quis dignissim nunc, nec luctus nibh. In luctus porttitor posuere. Quisque.",
+         "event-seats": "1",
+        },
+        {"event-url": "https://www.netflix.com/",
+         "event-title": "Test Event2",
+         "event-desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque vitae arcu turpis. Morbi quis dignissim nunc, nec luctus nibh. In luctus porttitor posuere. Quisque.",
+         "event-seats": "1",
+         },
+        {"event-url": "https://soundcloud.com/",
+         "event-title": "Test Event3",
+         "event-desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque vitae arcu turpis. Morbi quis dignissim nunc, nec luctus nibh. In luctus porttitor posuere. Quisque.",
+         "event-seats": "1",
+         },
+    ]
+
+class StoreTestData:
+    def __init__(self, driver):
+        self.driver = driver
+    myStore = [
+        {
+            "store-url": "https://jerryspringertv.com/",
+            "store-name": "store1",
+            "store-description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis non ornare ante, non vestibulum elit. Vivamus a erat dictum, porttitor ante in, commodo risus. Vivamus lacinia velit ut purus pulvinar ultricies. Sed hendrerit scelerisque quam, ac volutpat sem mattis eget. Nulla viverra leo eget dui pretium, at condimentum libero ullamcorper.",
+            "store-category": "TestCategory",
+            "store-country": "Japan",
+            "store-address": "15-1 Udagawacho, Shibuya City, Tokyo 150-0042",
+            "store-latitude": "35.6621425",
+            "store-longitude": "139.6984964",
+            "store-weekdays-start-time": "11",
+            "store-weekdays-end-time": "17",
+            "store-break-time": "13:00-14:00",
+
+        },
+    ]
+
+
 class CouponsTestData:
     def __init__(self, driver):
         self.driver = driver

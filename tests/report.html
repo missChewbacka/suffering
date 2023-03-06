@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>report.html</title>
+    <link href="assets/style.css" rel="stylesheet" type="text/css"/></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    let visibleString = getQueryParameter('visible') || 'all';
+    visibleString = visibleString.toLowerCase();
+    const checkedItems = visibleString.split(',');
+
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++) {
+        filterItems[i].hidden = false;
+
+        if (visibleString != 'all') {
+            filterItems[i].checked = checkedItems.includes(filterItems[i].getAttribute('data-test-result'));
+            filterTable(filterItems[i]);
+        }
+    }
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>report.html</h1>
+    <p>Report generated on 16-Feb-2023 at 12:22:41 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.2.0</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "1.0.0", "pytest": "7.2.1"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Windows-10-10.0.19044-SP0</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"html": "3.2.0", "metadata": "2.0.4"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.10.10</td></tr></table>
+    <h2>Summary</h2>
+    <p>31 tests ran in 1664.85 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">25 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">6 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_selecting_image_map_item_image</td>
+          <td class="col-duration">56.13</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div><div><img src="test_group1_upd.py_TestCasesGroup1_test_selecting_image_map_item_image.png" alt="screenshot" style="width:304px;height:228px;" onclick="window.open(this.src)" align="right"/></div></div>
+            <div class="log">self = &lt;tests.test_group1_upd.TestCasesGroup1 object at 0x000001AC3C0E1AE0&gt;<br/><br/>    def test_selecting_image_map_item_image(self):<br/>        log = self.getLogs()<br/>        self.accessAppTab()<br/>        Group1 = Group1TestData.MyGroup1Items<br/>        appTab = AppTab(self.driver)<br/>        appTab.selectGroup1()<br/>        time.sleep(1)<br/>        appTab.selectActionItem(Group1[8][&quot;item_name&quot;])<br/>        log.info(&quot;1. Select [image_map] chatflow item in [group1].&quot;)<br/>        time.sleep(2)<br/>&gt;       appTab.clickCameraIcon(Group1[8][&quot;item_camera_icon&quot;])<br/><br/>test_group1_upd.py:362: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>..\pageobjects\PageObjects.py:230: in clickCameraIcon<br/>    return self.driver.find_element(By.XPATH, mycameraicon).click()<br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\webdriver.py:830: in find_element<br/>    return self.execute(Command.FIND_ELEMENT, {&quot;using&quot;: by, &quot;value&quot;: value})[&quot;value&quot;]<br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\webdriver.py:440: in execute<br/>    self.error_handler.check_response(response)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x000001AC3C2249A0&gt;<br/>response = {&#x27;status&#x27;: 404, &#x27;value&#x27;: &#x27;{&quot;value&quot;:{&quot;error&quot;:&quot;no such element&quot;,&quot;message&quot;:&quot;no such element: Unable to locate element: {\...\n\\tRtlGetAppContainerNamedObjectPath [0x77A77A7E+286]\\n\\tRtlGetAppContainerNamedObjectPath [0x77A77A4E+238]\\n&quot;}}&#x27;}<br/><br/>    def check_response(self, response: Dict[str, Any]) -&gt; None:<br/>        &quot;&quot;&quot;Checks that a JSON response from the WebDriver does not have an<br/>        error.<br/>    <br/>        :Args:<br/>         - response - The JSON response from the WebDriver server as a dictionary<br/>           object.<br/>    <br/>        :Raises: If the response contains an error message.<br/>        &quot;&quot;&quot;<br/>        status = response.get(&quot;status&quot;, None)<br/>        if not status or status == ErrorCode.SUCCESS:<br/>            return<br/>        value = None<br/>        message = response.get(&quot;message&quot;, &quot;&quot;)<br/>        screen: str = response.get(&quot;screen&quot;, &quot;&quot;)<br/>        stacktrace = None<br/>        if isinstance(status, int):<br/>            value_json = response.get(&quot;value&quot;, None)<br/>            if value_json and isinstance(value_json, str):<br/>                import json<br/>    <br/>                try:<br/>                    value = json.loads(value_json)<br/>                    if len(value.keys()) == 1:<br/>                        value = value[&quot;value&quot;]<br/>                    status = value.get(&quot;error&quot;, None)<br/>                    if not status:<br/>                        status = value.get(&quot;status&quot;, ErrorCode.UNKNOWN_ERROR)<br/>                        message = value.get(&quot;value&quot;) or value.get(&quot;message&quot;)<br/>                        if not isinstance(message, str):<br/>                            value = message<br/>                            message = message.get(&quot;message&quot;)<br/>                    else:<br/>                        message = value.get(&quot;message&quot;, None)<br/>                except ValueError:<br/>                    pass<br/>    <br/>        exception_class: Type[WebDriverException]<br/>        if status in ErrorCode.NO_SUCH_ELEMENT:<br/>            exception_class = NoSuchElementException<br/>        elif status in ErrorCode.NO_SUCH_FRAME:<br/>            exception_class = NoSuchFrameException<br/>        elif status in ErrorCode.NO_SUCH_SHADOW_ROOT:<br/>            exception_class = NoSuchShadowRootException<br/>        elif status in ErrorCode.NO_SUCH_WINDOW:<br/>            exception_class = NoSuchWindowException<br/>        elif status in ErrorCode.STALE_ELEMENT_REFERENCE:<br/>            exception_class = StaleElementReferenceException<br/>        elif status in ErrorCode.ELEMENT_NOT_VISIBLE:<br/>            exception_class = ElementNotVisibleException<br/>        elif status in ErrorCode.INVALID_ELEMENT_STATE:<br/>            exception_class = InvalidElementStateException<br/>        elif (<br/>            status in ErrorCode.INVALID_SELECTOR<br/>            or status in ErrorCode.INVALID_XPATH_SELECTOR<br/>            or status in ErrorCode.INVALID_XPATH_SELECTOR_RETURN_TYPER<br/>        ):<br/>            exception_class = InvalidSelectorException<br/>        elif status in ErrorCode.ELEMENT_IS_NOT_SELECTABLE:<br/>            exception_class = ElementNotSelectableException<br/>        elif status in ErrorCode.ELEMENT_NOT_INTERACTABLE:<br/>            exception_class = ElementNotInteractableException<br/>        elif status in ErrorCode.INVALID_COOKIE_DOMAIN:<br/>            exception_class = InvalidCookieDomainException<br/>        elif status in ErrorCode.UNABLE_TO_SET_COOKIE:<br/>            exception_class = UnableToSetCookieException<br/>        elif status in ErrorCode.TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.SCRIPT_TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.UNKNOWN_ERROR:<br/>            exception_class = WebDriverException<br/>        elif status in ErrorCode.UNEXPECTED_ALERT_OPEN:<br/>            exception_class = UnexpectedAlertPresentException<br/>        elif status in ErrorCode.NO_ALERT_OPEN:<br/>            exception_class = NoAlertPresentException<br/>        elif status in ErrorCode.IME_NOT_AVAILABLE:<br/>            exception_class = ImeNotAvailableException<br/>        elif status in ErrorCode.IME_ENGINE_ACTIVATION_FAILED:<br/>            exception_class = ImeActivationFailedException<br/>        elif status in ErrorCode.MOVE_TARGET_OUT_OF_BOUNDS:<br/>            exception_class = MoveTargetOutOfBoundsException<br/>        elif status in ErrorCode.JAVASCRIPT_ERROR:<br/>            exception_class = JavascriptException<br/>        elif status in ErrorCode.SESSION_NOT_CREATED:<br/>            exception_class = SessionNotCreatedException<br/>        elif status in ErrorCode.INVALID_ARGUMENT:<br/>            exception_class = InvalidArgumentException<br/>        elif status in ErrorCode.NO_SUCH_COOKIE:<br/>            exception_class = NoSuchCookieException<br/>        elif status in ErrorCode.UNABLE_TO_CAPTURE_SCREEN:<br/>            exception_class = ScreenshotException<br/>        elif status in ErrorCode.ELEMENT_CLICK_INTERCEPTED:<br/>            exception_class = ElementClickInterceptedException<br/>        elif status in ErrorCode.INSECURE_CERTIFICATE:<br/>            exception_class = InsecureCertificateException<br/>        elif status in ErrorCode.INVALID_COORDINATES:<br/>            exception_class = InvalidCoordinatesException<br/>        elif status in ErrorCode.INVALID_SESSION_ID:<br/>            exception_class = InvalidSessionIdException<br/>        elif status in ErrorCode.UNKNOWN_METHOD:<br/>            exception_class = UnknownMethodException<br/>        else:<br/>            exception_class = WebDriverException<br/>        if not value:<br/>            value = response[&quot;value&quot;]<br/>        if isinstance(value, str):<br/>            raise exception_class(value)<br/>        if message == &quot;&quot; and &quot;message&quot; in value:<br/>            message = value[&quot;message&quot;]<br/>    <br/>        screen = None  # type: ignore[assignment]<br/>        if &quot;screen&quot; in value:<br/>            screen = value[&quot;screen&quot;]<br/>    <br/>        stacktrace = None<br/>        st_value = value.get(&quot;stackTrace&quot;) or value.get(&quot;stacktrace&quot;)<br/>        if st_value:<br/>            if isinstance(st_value, str):<br/>                stacktrace = st_value.split(&quot;\n&quot;)<br/>            else:<br/>                stacktrace = []<br/>                try:<br/>                    for frame in st_value:<br/>                        line = frame.get(&quot;lineNumber&quot;, &quot;&quot;)<br/>                        file = frame.get(&quot;fileName&quot;, &quot;&lt;anonymous&gt;&quot;)<br/>                        if line:<br/>                            file = f&quot;{file}:{line}&quot;<br/>                        meth = frame.get(&quot;methodName&quot;, &quot;&lt;anonymous&gt;&quot;)<br/>                        if &quot;className&quot; in frame:<br/>                            meth = f&quot;{frame[&#x27;className&#x27;]}.{meth}&quot;<br/>                        msg = &quot;    at %s (%s)&quot;<br/>                        msg = msg % (meth, file)<br/>                        stacktrace.append(msg)<br/>                except TypeError:<br/>                    pass<br/>        if exception_class == UnexpectedAlertPresentException:<br/>            alert_text = None<br/>            if &quot;data&quot; in value:<br/>                alert_text = value[&quot;data&quot;].get(&quot;text&quot;)<br/>            elif &quot;alert&quot; in value:<br/>                alert_text = value[&quot;alert&quot;].get(&quot;text&quot;)<br/>            raise exception_class(message, screen, stacktrace, alert_text)  # type: ignore[call-arg]  # mypy is not smart enough here<br/>&gt;       raise exception_class(message, screen, stacktrace)<br/><span class="error">E       selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {&quot;method&quot;:&quot;xpath&quot;,&quot;selector&quot;:&quot;(//ol[@class=&#x27;card imagecard seq-0&#x27;]/i[@class=&#x27;icon camera large upload-btn&#x27;])[17]&quot;}</span><br/><span class="error">E         (Session info: chrome=110.0.5481.97)</span><br/><span class="error">E       Stacktrace:</span><br/><span class="error">E       Backtrace:</span><br/><span class="error">E       	(No symbol) [0x008D37D3]</span><br/><span class="error">E       	(No symbol) [0x00868B81]</span><br/><span class="error">E       	(No symbol) [0x0076B36D]</span><br/><span class="error">E       	(No symbol) [0x0079D382]</span><br/><span class="error">E       	(No symbol) [0x0079D4BB]</span><br/><span class="error">E       	(No symbol) [0x007D3302]</span><br/><span class="error">E       	(No symbol) [0x007BB464]</span><br/><span class="error">E       	(No symbol) [0x007D1215]</span><br/><span class="error">E       	(No symbol) [0x007BB216]</span><br/><span class="error">E       	(No symbol) [0x00790D97]</span><br/><span class="error">E       	(No symbol) [0x0079253D]</span><br/><span class="error">E       	GetHandleVerifier [0x00B4ABF2+2510930]</span><br/><span class="error">E       	GetHandleVerifier [0x00B78EC1+2700065]</span><br/><span class="error">E       	GetHandleVerifier [0x00B7C86C+2714828]</span><br/><span class="error">E       	GetHandleVerifier [0x00983480+645344]</span><br/><span class="error">E       	(No symbol) [0x00870FD2]</span><br/><span class="error">E       	(No symbol) [0x00876C68]</span><br/><span class="error">E       	(No symbol) [0x00876D4B]</span><br/><span class="error">E       	(No symbol) [0x00880D6B]</span><br/><span class="error">E       	BaseThreadInitThunk [0x75C9FA29+25]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A7E+286]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A4E+238]</span><br/><br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\errorhandler.py:245: NoSuchElementException<br/> -------------------------------Captured log call-------------------------------- <br/>INFO     test_selecting_image_map_item_image:test_group1_upd.py:360 1. Select [image_map] chatflow item in [group1].<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_setting_up_imagemap</td>
+          <td class="col-duration">71.58</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div><div><img src="test_group1_upd.py_TestCasesGroup1_test_setting_up_imagemap.png" alt="screenshot" style="width:304px;height:228px;" onclick="window.open(this.src)" align="right"/></div></div>
+            <div class="log">self = &lt;tests.test_group1_upd.TestCasesGroup1 object at 0x000001AC3C0E1C30&gt;<br/><br/>    def test_setting_up_imagemap(self):<br/>        log = self.getLogs()<br/>        self.accessAppTab()<br/>        Group1 = Group1TestData.MyGroup1Items<br/>        appTab = AppTab(self.driver)<br/>        appTab.selectGroup1()<br/>        appTab.selectActionItem(Group1[8][&quot;item_name&quot;])<br/>        time.sleep(1)<br/>        log.info(&quot;1. Select [image_map] chatflow item in [group1].&quot;)<br/>&gt;       appTab.clickBrushIcon(Group1[8][&quot;item_brush_icon&quot;])<br/><br/>test_group1_upd.py:378: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>..\pageobjects\PageObjects.py:236: in clickBrushIcon<br/>    return self.driver.find_element(By.XPATH, mybrushicon).click()<br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\webdriver.py:830: in find_element<br/>    return self.execute(Command.FIND_ELEMENT, {&quot;using&quot;: by, &quot;value&quot;: value})[&quot;value&quot;]<br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\webdriver.py:440: in execute<br/>    self.error_handler.check_response(response)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x000001AC3C0E3820&gt;<br/>response = {&#x27;status&#x27;: 404, &#x27;value&#x27;: &#x27;{&quot;value&quot;:{&quot;error&quot;:&quot;no such element&quot;,&quot;message&quot;:&quot;no such element: Unable to locate element: {\...\n\\tRtlGetAppContainerNamedObjectPath [0x77A77A7E+286]\\n\\tRtlGetAppContainerNamedObjectPath [0x77A77A4E+238]\\n&quot;}}&#x27;}<br/><br/>    def check_response(self, response: Dict[str, Any]) -&gt; None:<br/>        &quot;&quot;&quot;Checks that a JSON response from the WebDriver does not have an<br/>        error.<br/>    <br/>        :Args:<br/>         - response - The JSON response from the WebDriver server as a dictionary<br/>           object.<br/>    <br/>        :Raises: If the response contains an error message.<br/>        &quot;&quot;&quot;<br/>        status = response.get(&quot;status&quot;, None)<br/>        if not status or status == ErrorCode.SUCCESS:<br/>            return<br/>        value = None<br/>        message = response.get(&quot;message&quot;, &quot;&quot;)<br/>        screen: str = response.get(&quot;screen&quot;, &quot;&quot;)<br/>        stacktrace = None<br/>        if isinstance(status, int):<br/>            value_json = response.get(&quot;value&quot;, None)<br/>            if value_json and isinstance(value_json, str):<br/>                import json<br/>    <br/>                try:<br/>                    value = json.loads(value_json)<br/>                    if len(value.keys()) == 1:<br/>                        value = value[&quot;value&quot;]<br/>                    status = value.get(&quot;error&quot;, None)<br/>                    if not status:<br/>                        status = value.get(&quot;status&quot;, ErrorCode.UNKNOWN_ERROR)<br/>                        message = value.get(&quot;value&quot;) or value.get(&quot;message&quot;)<br/>                        if not isinstance(message, str):<br/>                            value = message<br/>                            message = message.get(&quot;message&quot;)<br/>                    else:<br/>                        message = value.get(&quot;message&quot;, None)<br/>                except ValueError:<br/>                    pass<br/>    <br/>        exception_class: Type[WebDriverException]<br/>        if status in ErrorCode.NO_SUCH_ELEMENT:<br/>            exception_class = NoSuchElementException<br/>        elif status in ErrorCode.NO_SUCH_FRAME:<br/>            exception_class = NoSuchFrameException<br/>        elif status in ErrorCode.NO_SUCH_SHADOW_ROOT:<br/>            exception_class = NoSuchShadowRootException<br/>        elif status in ErrorCode.NO_SUCH_WINDOW:<br/>            exception_class = NoSuchWindowException<br/>        elif status in ErrorCode.STALE_ELEMENT_REFERENCE:<br/>            exception_class = StaleElementReferenceException<br/>        elif status in ErrorCode.ELEMENT_NOT_VISIBLE:<br/>            exception_class = ElementNotVisibleException<br/>        elif status in ErrorCode.INVALID_ELEMENT_STATE:<br/>            exception_class = InvalidElementStateException<br/>        elif (<br/>            status in ErrorCode.INVALID_SELECTOR<br/>            or status in ErrorCode.INVALID_XPATH_SELECTOR<br/>            or status in ErrorCode.INVALID_XPATH_SELECTOR_RETURN_TYPER<br/>        ):<br/>            exception_class = InvalidSelectorException<br/>        elif status in ErrorCode.ELEMENT_IS_NOT_SELECTABLE:<br/>            exception_class = ElementNotSelectableException<br/>        elif status in ErrorCode.ELEMENT_NOT_INTERACTABLE:<br/>            exception_class = ElementNotInteractableException<br/>        elif status in ErrorCode.INVALID_COOKIE_DOMAIN:<br/>            exception_class = InvalidCookieDomainException<br/>        elif status in ErrorCode.UNABLE_TO_SET_COOKIE:<br/>            exception_class = UnableToSetCookieException<br/>        elif status in ErrorCode.TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.SCRIPT_TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.UNKNOWN_ERROR:<br/>            exception_class = WebDriverException<br/>        elif status in ErrorCode.UNEXPECTED_ALERT_OPEN:<br/>            exception_class = UnexpectedAlertPresentException<br/>        elif status in ErrorCode.NO_ALERT_OPEN:<br/>            exception_class = NoAlertPresentException<br/>        elif status in ErrorCode.IME_NOT_AVAILABLE:<br/>            exception_class = ImeNotAvailableException<br/>        elif status in ErrorCode.IME_ENGINE_ACTIVATION_FAILED:<br/>            exception_class = ImeActivationFailedException<br/>        elif status in ErrorCode.MOVE_TARGET_OUT_OF_BOUNDS:<br/>            exception_class = MoveTargetOutOfBoundsException<br/>        elif status in ErrorCode.JAVASCRIPT_ERROR:<br/>            exception_class = JavascriptException<br/>        elif status in ErrorCode.SESSION_NOT_CREATED:<br/>            exception_class = SessionNotCreatedException<br/>        elif status in ErrorCode.INVALID_ARGUMENT:<br/>            exception_class = InvalidArgumentException<br/>        elif status in ErrorCode.NO_SUCH_COOKIE:<br/>            exception_class = NoSuchCookieException<br/>        elif status in ErrorCode.UNABLE_TO_CAPTURE_SCREEN:<br/>            exception_class = ScreenshotException<br/>        elif status in ErrorCode.ELEMENT_CLICK_INTERCEPTED:<br/>            exception_class = ElementClickInterceptedException<br/>        elif status in ErrorCode.INSECURE_CERTIFICATE:<br/>            exception_class = InsecureCertificateException<br/>        elif status in ErrorCode.INVALID_COORDINATES:<br/>            exception_class = InvalidCoordinatesException<br/>        elif status in ErrorCode.INVALID_SESSION_ID:<br/>            exception_class = InvalidSessionIdException<br/>        elif status in ErrorCode.UNKNOWN_METHOD:<br/>            exception_class = UnknownMethodException<br/>        else:<br/>            exception_class = WebDriverException<br/>        if not value:<br/>            value = response[&quot;value&quot;]<br/>        if isinstance(value, str):<br/>            raise exception_class(value)<br/>        if message == &quot;&quot; and &quot;message&quot; in value:<br/>            message = value[&quot;message&quot;]<br/>    <br/>        screen = None  # type: ignore[assignment]<br/>        if &quot;screen&quot; in value:<br/>            screen = value[&quot;screen&quot;]<br/>    <br/>        stacktrace = None<br/>        st_value = value.get(&quot;stackTrace&quot;) or value.get(&quot;stacktrace&quot;)<br/>        if st_value:<br/>            if isinstance(st_value, str):<br/>                stacktrace = st_value.split(&quot;\n&quot;)<br/>            else:<br/>                stacktrace = []<br/>                try:<br/>                    for frame in st_value:<br/>                        line = frame.get(&quot;lineNumber&quot;, &quot;&quot;)<br/>                        file = frame.get(&quot;fileName&quot;, &quot;&lt;anonymous&gt;&quot;)<br/>                        if line:<br/>                            file = f&quot;{file}:{line}&quot;<br/>                        meth = frame.get(&quot;methodName&quot;, &quot;&lt;anonymous&gt;&quot;)<br/>                        if &quot;className&quot; in frame:<br/>                            meth = f&quot;{frame[&#x27;className&#x27;]}.{meth}&quot;<br/>                        msg = &quot;    at %s (%s)&quot;<br/>                        msg = msg % (meth, file)<br/>                        stacktrace.append(msg)<br/>                except TypeError:<br/>                    pass<br/>        if exception_class == UnexpectedAlertPresentException:<br/>            alert_text = None<br/>            if &quot;data&quot; in value:<br/>                alert_text = value[&quot;data&quot;].get(&quot;text&quot;)<br/>            elif &quot;alert&quot; in value:<br/>                alert_text = value[&quot;alert&quot;].get(&quot;text&quot;)<br/>            raise exception_class(message, screen, stacktrace, alert_text)  # type: ignore[call-arg]  # mypy is not smart enough here<br/>&gt;       raise exception_class(message, screen, stacktrace)<br/><span class="error">E       selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {&quot;method&quot;:&quot;xpath&quot;,&quot;selector&quot;:&quot;(//i[@class=&#x27;icon brush large upload-btn&#x27;])[17]&quot;}</span><br/><span class="error">E         (Session info: chrome=110.0.5481.97)</span><br/><span class="error">E       Stacktrace:</span><br/><span class="error">E       Backtrace:</span><br/><span class="error">E       	(No symbol) [0x008D37D3]</span><br/><span class="error">E       	(No symbol) [0x00868B81]</span><br/><span class="error">E       	(No symbol) [0x0076B36D]</span><br/><span class="error">E       	(No symbol) [0x0079D382]</span><br/><span class="error">E       	(No symbol) [0x0079D4BB]</span><br/><span class="error">E       	(No symbol) [0x007D3302]</span><br/><span class="error">E       	(No symbol) [0x007BB464]</span><br/><span class="error">E       	(No symbol) [0x007D1215]</span><br/><span class="error">E       	(No symbol) [0x007BB216]</span><br/><span class="error">E       	(No symbol) [0x00790D97]</span><br/><span class="error">E       	(No symbol) [0x0079253D]</span><br/><span class="error">E       	GetHandleVerifier [0x00B4ABF2+2510930]</span><br/><span class="error">E       	GetHandleVerifier [0x00B78EC1+2700065]</span><br/><span class="error">E       	GetHandleVerifier [0x00B7C86C+2714828]</span><br/><span class="error">E       	GetHandleVerifier [0x00983480+645344]</span><br/><span class="error">E       	(No symbol) [0x00870FD2]</span><br/><span class="error">E       	(No symbol) [0x00876C68]</span><br/><span class="error">E       	(No symbol) [0x00876D4B]</span><br/><span class="error">E       	(No symbol) [0x00880D6B]</span><br/><span class="error">E       	BaseThreadInitThunk [0x75C9FA29+25]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A7E+286]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A4E+238]</span><br/><br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\errorhandler.py:245: NoSuchElementException<br/> -------------------------------Captured log call-------------------------------- <br/>INFO     test_setting_up_imagemap:test_group1_upd.py:377 1. Select [image_map] chatflow item in [group1].<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_setting_transitions_for_imagemap_areas</td>
+          <td class="col-duration">60.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div><div><img src="test_group1_upd.py_TestCasesGroup1_test_setting_transitions_for_imagemap_areas.png" alt="screenshot" style="width:304px;height:228px;" onclick="window.open(this.src)" align="right"/></div></div>
+            <div class="log">self = &lt;tests.test_group1_upd.TestCasesGroup1 object at 0x000001AC3C0E1D80&gt;<br/><br/>    def test_setting_transitions_for_imagemap_areas(self):<br/>        log = self.getLogs()<br/>        self.accessAppTab()<br/>        Group1 = Group1TestData.MyGroup1Items<br/>        appTab = AppTab(self.driver)<br/>        appTab.selectGroup1()<br/>        appTab.selectActionItem(Group1[8][&quot;item_name&quot;])<br/>        log.info(&quot;1. Select [image_map] chatflow item in [group1].&quot;)<br/>        #Add area 1 settings<br/>        appTab.selectImagemapAreaButton(&quot;Area 1&quot;)<br/>        time.sleep(1)<br/>&gt;       if self.driver.find_element(*AppTab.ActionManually).get_attribute(&quot;checked&quot;) != &quot;true&quot;:<br/><br/>test_group1_upd.py:406: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\webdriver.py:830: in find_element<br/>    return self.execute(Command.FIND_ELEMENT, {&quot;using&quot;: by, &quot;value&quot;: value})[&quot;value&quot;]<br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\webdriver.py:440: in execute<br/>    self.error_handler.check_response(response)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x000001AC3CD92050&gt;<br/>response = {&#x27;status&#x27;: 404, &#x27;value&#x27;: &#x27;{&quot;value&quot;:{&quot;error&quot;:&quot;no such element&quot;,&quot;message&quot;:&quot;no such element: Unable to locate element: {\...\n\\tRtlGetAppContainerNamedObjectPath [0x77A77A7E+286]\\n\\tRtlGetAppContainerNamedObjectPath [0x77A77A4E+238]\\n&quot;}}&#x27;}<br/><br/>    def check_response(self, response: Dict[str, Any]) -&gt; None:<br/>        &quot;&quot;&quot;Checks that a JSON response from the WebDriver does not have an<br/>        error.<br/>    <br/>        :Args:<br/>         - response - The JSON response from the WebDriver server as a dictionary<br/>           object.<br/>    <br/>        :Raises: If the response contains an error message.<br/>        &quot;&quot;&quot;<br/>        status = response.get(&quot;status&quot;, None)<br/>        if not status or status == ErrorCode.SUCCESS:<br/>            return<br/>        value = None<br/>        message = response.get(&quot;message&quot;, &quot;&quot;)<br/>        screen: str = response.get(&quot;screen&quot;, &quot;&quot;)<br/>        stacktrace = None<br/>        if isinstance(status, int):<br/>            value_json = response.get(&quot;value&quot;, None)<br/>            if value_json and isinstance(value_json, str):<br/>                import json<br/>    <br/>                try:<br/>                    value = json.loads(value_json)<br/>                    if len(value.keys()) == 1:<br/>                        value = value[&quot;value&quot;]<br/>                    status = value.get(&quot;error&quot;, None)<br/>                    if not status:<br/>                        status = value.get(&quot;status&quot;, ErrorCode.UNKNOWN_ERROR)<br/>                        message = value.get(&quot;value&quot;) or value.get(&quot;message&quot;)<br/>                        if not isinstance(message, str):<br/>                            value = message<br/>                            message = message.get(&quot;message&quot;)<br/>                    else:<br/>                        message = value.get(&quot;message&quot;, None)<br/>                except ValueError:<br/>                    pass<br/>    <br/>        exception_class: Type[WebDriverException]<br/>        if status in ErrorCode.NO_SUCH_ELEMENT:<br/>            exception_class = NoSuchElementException<br/>        elif status in ErrorCode.NO_SUCH_FRAME:<br/>            exception_class = NoSuchFrameException<br/>        elif status in ErrorCode.NO_SUCH_SHADOW_ROOT:<br/>            exception_class = NoSuchShadowRootException<br/>        elif status in ErrorCode.NO_SUCH_WINDOW:<br/>            exception_class = NoSuchWindowException<br/>        elif status in ErrorCode.STALE_ELEMENT_REFERENCE:<br/>            exception_class = StaleElementReferenceException<br/>        elif status in ErrorCode.ELEMENT_NOT_VISIBLE:<br/>            exception_class = ElementNotVisibleException<br/>        elif status in ErrorCode.INVALID_ELEMENT_STATE:<br/>            exception_class = InvalidElementStateException<br/>        elif (<br/>            status in ErrorCode.INVALID_SELECTOR<br/>            or status in ErrorCode.INVALID_XPATH_SELECTOR<br/>            or status in ErrorCode.INVALID_XPATH_SELECTOR_RETURN_TYPER<br/>        ):<br/>            exception_class = InvalidSelectorException<br/>        elif status in ErrorCode.ELEMENT_IS_NOT_SELECTABLE:<br/>            exception_class = ElementNotSelectableException<br/>        elif status in ErrorCode.ELEMENT_NOT_INTERACTABLE:<br/>            exception_class = ElementNotInteractableException<br/>        elif status in ErrorCode.INVALID_COOKIE_DOMAIN:<br/>            exception_class = InvalidCookieDomainException<br/>        elif status in ErrorCode.UNABLE_TO_SET_COOKIE:<br/>            exception_class = UnableToSetCookieException<br/>        elif status in ErrorCode.TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.SCRIPT_TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.UNKNOWN_ERROR:<br/>            exception_class = WebDriverException<br/>        elif status in ErrorCode.UNEXPECTED_ALERT_OPEN:<br/>            exception_class = UnexpectedAlertPresentException<br/>        elif status in ErrorCode.NO_ALERT_OPEN:<br/>            exception_class = NoAlertPresentException<br/>        elif status in ErrorCode.IME_NOT_AVAILABLE:<br/>            exception_class = ImeNotAvailableException<br/>        elif status in ErrorCode.IME_ENGINE_ACTIVATION_FAILED:<br/>            exception_class = ImeActivationFailedException<br/>        elif status in ErrorCode.MOVE_TARGET_OUT_OF_BOUNDS:<br/>            exception_class = MoveTargetOutOfBoundsException<br/>        elif status in ErrorCode.JAVASCRIPT_ERROR:<br/>            exception_class = JavascriptException<br/>        elif status in ErrorCode.SESSION_NOT_CREATED:<br/>            exception_class = SessionNotCreatedException<br/>        elif status in ErrorCode.INVALID_ARGUMENT:<br/>            exception_class = InvalidArgumentException<br/>        elif status in ErrorCode.NO_SUCH_COOKIE:<br/>            exception_class = NoSuchCookieException<br/>        elif status in ErrorCode.UNABLE_TO_CAPTURE_SCREEN:<br/>            exception_class = ScreenshotException<br/>        elif status in ErrorCode.ELEMENT_CLICK_INTERCEPTED:<br/>            exception_class = ElementClickInterceptedException<br/>        elif status in ErrorCode.INSECURE_CERTIFICATE:<br/>            exception_class = InsecureCertificateException<br/>        elif status in ErrorCode.INVALID_COORDINATES:<br/>            exception_class = InvalidCoordinatesException<br/>        elif status in ErrorCode.INVALID_SESSION_ID:<br/>            exception_class = InvalidSessionIdException<br/>        elif status in ErrorCode.UNKNOWN_METHOD:<br/>            exception_class = UnknownMethodException<br/>        else:<br/>            exception_class = WebDriverException<br/>        if not value:<br/>            value = response[&quot;value&quot;]<br/>        if isinstance(value, str):<br/>            raise exception_class(value)<br/>        if message == &quot;&quot; and &quot;message&quot; in value:<br/>            message = value[&quot;message&quot;]<br/>    <br/>        screen = None  # type: ignore[assignment]<br/>        if &quot;screen&quot; in value:<br/>            screen = value[&quot;screen&quot;]<br/>    <br/>        stacktrace = None<br/>        st_value = value.get(&quot;stackTrace&quot;) or value.get(&quot;stacktrace&quot;)<br/>        if st_value:<br/>            if isinstance(st_value, str):<br/>                stacktrace = st_value.split(&quot;\n&quot;)<br/>            else:<br/>                stacktrace = []<br/>                try:<br/>                    for frame in st_value:<br/>                        line = frame.get(&quot;lineNumber&quot;, &quot;&quot;)<br/>                        file = frame.get(&quot;fileName&quot;, &quot;&lt;anonymous&gt;&quot;)<br/>                        if line:<br/>                            file = f&quot;{file}:{line}&quot;<br/>                        meth = frame.get(&quot;methodName&quot;, &quot;&lt;anonymous&gt;&quot;)<br/>                        if &quot;className&quot; in frame:<br/>                            meth = f&quot;{frame[&#x27;className&#x27;]}.{meth}&quot;<br/>                        msg = &quot;    at %s (%s)&quot;<br/>                        msg = msg % (meth, file)<br/>                        stacktrace.append(msg)<br/>                except TypeError:<br/>                    pass<br/>        if exception_class == UnexpectedAlertPresentException:<br/>            alert_text = None<br/>            if &quot;data&quot; in value:<br/>                alert_text = value[&quot;data&quot;].get(&quot;text&quot;)<br/>            elif &quot;alert&quot; in value:<br/>                alert_text = value[&quot;alert&quot;].get(&quot;text&quot;)<br/>            raise exception_class(message, screen, stacktrace, alert_text)  # type: ignore[call-arg]  # mypy is not smart enough here<br/>&gt;       raise exception_class(message, screen, stacktrace)<br/><span class="error">E       selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {&quot;method&quot;:&quot;xpath&quot;,&quot;selector&quot;:&quot;//input[@value=&#x27;manual&#x27;]&quot;}</span><br/><span class="error">E         (Session info: chrome=110.0.5481.97)</span><br/><span class="error">E       Stacktrace:</span><br/><span class="error">E       Backtrace:</span><br/><span class="error">E       	(No symbol) [0x008D37D3]</span><br/><span class="error">E       	(No symbol) [0x00868B81]</span><br/><span class="error">E       	(No symbol) [0x0076B36D]</span><br/><span class="error">E       	(No symbol) [0x0079D382]</span><br/><span class="error">E       	(No symbol) [0x0079D4BB]</span><br/><span class="error">E       	(No symbol) [0x007D3302]</span><br/><span class="error">E       	(No symbol) [0x007BB464]</span><br/><span class="error">E       	(No symbol) [0x007D1215]</span><br/><span class="error">E       	(No symbol) [0x007BB216]</span><br/><span class="error">E       	(No symbol) [0x00790D97]</span><br/><span class="error">E       	(No symbol) [0x0079253D]</span><br/><span class="error">E       	GetHandleVerifier [0x00B4ABF2+2510930]</span><br/><span class="error">E       	GetHandleVerifier [0x00B78EC1+2700065]</span><br/><span class="error">E       	GetHandleVerifier [0x00B7C86C+2714828]</span><br/><span class="error">E       	GetHandleVerifier [0x00983480+645344]</span><br/><span class="error">E       	(No symbol) [0x00870FD2]</span><br/><span class="error">E       	(No symbol) [0x00876C68]</span><br/><span class="error">E       	(No symbol) [0x00876D4B]</span><br/><span class="error">E       	(No symbol) [0x00880D6B]</span><br/><span class="error">E       	BaseThreadInitThunk [0x75C9FA29+25]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A7E+286]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A4E+238]</span><br/><br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\errorhandler.py:245: NoSuchElementException<br/> -------------------------------Captured log call-------------------------------- <br/>INFO     test_setting_transitions_for_imagemap_areas:test_group1_upd.py:402 1. Select [image_map] chatflow item in [group1].<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_selecting_image_item_image</td>
+          <td class="col-duration">85.23</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div><div><img src="test_group1_upd.py_TestCasesGroup1_test_selecting_image_item_image.png" alt="screenshot" style="width:304px;height:228px;" onclick="window.open(this.src)" align="right"/></div></div>
+            <div class="log">self = &lt;tests.test_group1_upd.TestCasesGroup1 object at 0x000001AC3C0E2020&gt;<br/><br/>    def test_selecting_image_item_image(self):<br/>        log = self.getLogs()<br/>        self.accessAppTab()<br/>        Group1 = Group1TestData.MyGroup1Items<br/>        appTab = AppTab(self.driver)<br/>        appTab.selectGroup1()<br/>        time.sleep(1)<br/>        appTab.selectActionItem(Group1[9][&quot;item_name&quot;])<br/>        time.sleep(1)<br/>        log.info(&quot;1. Select [image1] chatflow item in [group1].&quot;)<br/>        time.sleep(2)<br/>&gt;       appTab.clickCameraIcon(Group1[9][&quot;item_camera_icon&quot;])<br/><br/>test_group1_upd.py:454: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>..\pageobjects\PageObjects.py:230: in clickCameraIcon<br/>    return self.driver.find_element(By.XPATH, mycameraicon).click()<br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\webdriver.py:830: in find_element<br/>    return self.execute(Command.FIND_ELEMENT, {&quot;using&quot;: by, &quot;value&quot;: value})[&quot;value&quot;]<br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\webdriver.py:440: in execute<br/>    self.error_handler.check_response(response)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x000001AC3C318AC0&gt;<br/>response = {&#x27;status&#x27;: 404, &#x27;value&#x27;: &#x27;{&quot;value&quot;:{&quot;error&quot;:&quot;no such element&quot;,&quot;message&quot;:&quot;no such element: Unable to locate element: {\...\n\\tRtlGetAppContainerNamedObjectPath [0x77A77A7E+286]\\n\\tRtlGetAppContainerNamedObjectPath [0x77A77A4E+238]\\n&quot;}}&#x27;}<br/><br/>    def check_response(self, response: Dict[str, Any]) -&gt; None:<br/>        &quot;&quot;&quot;Checks that a JSON response from the WebDriver does not have an<br/>        error.<br/>    <br/>        :Args:<br/>         - response - The JSON response from the WebDriver server as a dictionary<br/>           object.<br/>    <br/>        :Raises: If the response contains an error message.<br/>        &quot;&quot;&quot;<br/>        status = response.get(&quot;status&quot;, None)<br/>        if not status or status == ErrorCode.SUCCESS:<br/>            return<br/>        value = None<br/>        message = response.get(&quot;message&quot;, &quot;&quot;)<br/>        screen: str = response.get(&quot;screen&quot;, &quot;&quot;)<br/>        stacktrace = None<br/>        if isinstance(status, int):<br/>            value_json = response.get(&quot;value&quot;, None)<br/>            if value_json and isinstance(value_json, str):<br/>                import json<br/>    <br/>                try:<br/>                    value = json.loads(value_json)<br/>                    if len(value.keys()) == 1:<br/>                        value = value[&quot;value&quot;]<br/>                    status = value.get(&quot;error&quot;, None)<br/>                    if not status:<br/>                        status = value.get(&quot;status&quot;, ErrorCode.UNKNOWN_ERROR)<br/>                        message = value.get(&quot;value&quot;) or value.get(&quot;message&quot;)<br/>                        if not isinstance(message, str):<br/>                            value = message<br/>                            message = message.get(&quot;message&quot;)<br/>                    else:<br/>                        message = value.get(&quot;message&quot;, None)<br/>                except ValueError:<br/>                    pass<br/>    <br/>        exception_class: Type[WebDriverException]<br/>        if status in ErrorCode.NO_SUCH_ELEMENT:<br/>            exception_class = NoSuchElementException<br/>        elif status in ErrorCode.NO_SUCH_FRAME:<br/>            exception_class = NoSuchFrameException<br/>        elif status in ErrorCode.NO_SUCH_SHADOW_ROOT:<br/>            exception_class = NoSuchShadowRootException<br/>        elif status in ErrorCode.NO_SUCH_WINDOW:<br/>            exception_class = NoSuchWindowException<br/>        elif status in ErrorCode.STALE_ELEMENT_REFERENCE:<br/>            exception_class = StaleElementReferenceException<br/>        elif status in ErrorCode.ELEMENT_NOT_VISIBLE:<br/>            exception_class = ElementNotVisibleException<br/>        elif status in ErrorCode.INVALID_ELEMENT_STATE:<br/>            exception_class = InvalidElementStateException<br/>        elif (<br/>            status in ErrorCode.INVALID_SELECTOR<br/>            or status in ErrorCode.INVALID_XPATH_SELECTOR<br/>            or status in ErrorCode.INVALID_XPATH_SELECTOR_RETURN_TYPER<br/>        ):<br/>            exception_class = InvalidSelectorException<br/>        elif status in ErrorCode.ELEMENT_IS_NOT_SELECTABLE:<br/>            exception_class = ElementNotSelectableException<br/>        elif status in ErrorCode.ELEMENT_NOT_INTERACTABLE:<br/>            exception_class = ElementNotInteractableException<br/>        elif status in ErrorCode.INVALID_COOKIE_DOMAIN:<br/>            exception_class = InvalidCookieDomainException<br/>        elif status in ErrorCode.UNABLE_TO_SET_COOKIE:<br/>            exception_class = UnableToSetCookieException<br/>        elif status in ErrorCode.TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.SCRIPT_TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.UNKNOWN_ERROR:<br/>            exception_class = WebDriverException<br/>        elif status in ErrorCode.UNEXPECTED_ALERT_OPEN:<br/>            exception_class = UnexpectedAlertPresentException<br/>        elif status in ErrorCode.NO_ALERT_OPEN:<br/>            exception_class = NoAlertPresentException<br/>        elif status in ErrorCode.IME_NOT_AVAILABLE:<br/>            exception_class = ImeNotAvailableException<br/>        elif status in ErrorCode.IME_ENGINE_ACTIVATION_FAILED:<br/>            exception_class = ImeActivationFailedException<br/>        elif status in ErrorCode.MOVE_TARGET_OUT_OF_BOUNDS:<br/>            exception_class = MoveTargetOutOfBoundsException<br/>        elif status in ErrorCode.JAVASCRIPT_ERROR:<br/>            exception_class = JavascriptException<br/>        elif status in ErrorCode.SESSION_NOT_CREATED:<br/>            exception_class = SessionNotCreatedException<br/>        elif status in ErrorCode.INVALID_ARGUMENT:<br/>            exception_class = InvalidArgumentException<br/>        elif status in ErrorCode.NO_SUCH_COOKIE:<br/>            exception_class = NoSuchCookieException<br/>        elif status in ErrorCode.UNABLE_TO_CAPTURE_SCREEN:<br/>            exception_class = ScreenshotException<br/>        elif status in ErrorCode.ELEMENT_CLICK_INTERCEPTED:<br/>            exception_class = ElementClickInterceptedException<br/>        elif status in ErrorCode.INSECURE_CERTIFICATE:<br/>            exception_class = InsecureCertificateException<br/>        elif status in ErrorCode.INVALID_COORDINATES:<br/>            exception_class = InvalidCoordinatesException<br/>        elif status in ErrorCode.INVALID_SESSION_ID:<br/>            exception_class = InvalidSessionIdException<br/>        elif status in ErrorCode.UNKNOWN_METHOD:<br/>            exception_class = UnknownMethodException<br/>        else:<br/>            exception_class = WebDriverException<br/>        if not value:<br/>            value = response[&quot;value&quot;]<br/>        if isinstance(value, str):<br/>            raise exception_class(value)<br/>        if message == &quot;&quot; and &quot;message&quot; in value:<br/>            message = value[&quot;message&quot;]<br/>    <br/>        screen = None  # type: ignore[assignment]<br/>        if &quot;screen&quot; in value:<br/>            screen = value[&quot;screen&quot;]<br/>    <br/>        stacktrace = None<br/>        st_value = value.get(&quot;stackTrace&quot;) or value.get(&quot;stacktrace&quot;)<br/>        if st_value:<br/>            if isinstance(st_value, str):<br/>                stacktrace = st_value.split(&quot;\n&quot;)<br/>            else:<br/>                stacktrace = []<br/>                try:<br/>                    for frame in st_value:<br/>                        line = frame.get(&quot;lineNumber&quot;, &quot;&quot;)<br/>                        file = frame.get(&quot;fileName&quot;, &quot;&lt;anonymous&gt;&quot;)<br/>                        if line:<br/>                            file = f&quot;{file}:{line}&quot;<br/>                        meth = frame.get(&quot;methodName&quot;, &quot;&lt;anonymous&gt;&quot;)<br/>                        if &quot;className&quot; in frame:<br/>                            meth = f&quot;{frame[&#x27;className&#x27;]}.{meth}&quot;<br/>                        msg = &quot;    at %s (%s)&quot;<br/>                        msg = msg % (meth, file)<br/>                        stacktrace.append(msg)<br/>                except TypeError:<br/>                    pass<br/>        if exception_class == UnexpectedAlertPresentException:<br/>            alert_text = None<br/>            if &quot;data&quot; in value:<br/>                alert_text = value[&quot;data&quot;].get(&quot;text&quot;)<br/>            elif &quot;alert&quot; in value:<br/>                alert_text = value[&quot;alert&quot;].get(&quot;text&quot;)<br/>            raise exception_class(message, screen, stacktrace, alert_text)  # type: ignore[call-arg]  # mypy is not smart enough here<br/>&gt;       raise exception_class(message, screen, stacktrace)<br/><span class="error">E       selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {&quot;method&quot;:&quot;xpath&quot;,&quot;selector&quot;:&quot;(//ol[@class=&#x27;card imagecard seq-0&#x27;]/i[@class=&#x27;icon camera large upload-btn&#x27;])[18]&quot;}</span><br/><span class="error">E         (Session info: chrome=110.0.5481.97)</span><br/><span class="error">E       Stacktrace:</span><br/><span class="error">E       Backtrace:</span><br/><span class="error">E       	(No symbol) [0x008D37D3]</span><br/><span class="error">E       	(No symbol) [0x00868B81]</span><br/><span class="error">E       	(No symbol) [0x0076B36D]</span><br/><span class="error">E       	(No symbol) [0x0079D382]</span><br/><span class="error">E       	(No symbol) [0x0079D4BB]</span><br/><span class="error">E       	(No symbol) [0x007D3302]</span><br/><span class="error">E       	(No symbol) [0x007BB464]</span><br/><span class="error">E       	(No symbol) [0x007D1215]</span><br/><span class="error">E       	(No symbol) [0x007BB216]</span><br/><span class="error">E       	(No symbol) [0x00790D97]</span><br/><span class="error">E       	(No symbol) [0x0079253D]</span><br/><span class="error">E       	GetHandleVerifier [0x00B4ABF2+2510930]</span><br/><span class="error">E       	GetHandleVerifier [0x00B78EC1+2700065]</span><br/><span class="error">E       	GetHandleVerifier [0x00B7C86C+2714828]</span><br/><span class="error">E       	GetHandleVerifier [0x00983480+645344]</span><br/><span class="error">E       	(No symbol) [0x00870FD2]</span><br/><span class="error">E       	(No symbol) [0x00876C68]</span><br/><span class="error">E       	(No symbol) [0x00876D4B]</span><br/><span class="error">E       	(No symbol) [0x00880D6B]</span><br/><span class="error">E       	BaseThreadInitThunk [0x75C9FA29+25]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A7E+286]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A4E+238]</span><br/><br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\remote\errorhandler.py:245: NoSuchElementException<br/> -------------------------------Captured log call-------------------------------- <br/>INFO     test_selecting_image_item_image:test_group1_upd.py:452 1. Select [image1] chatflow item in [group1].<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_selecting_image_and_video_for_video_using_upload</td>
+          <td class="col-duration">80.14</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div><div><img src="test_group1_upd.py_TestCasesGroup1_test_selecting_image_and_video_for_video_using_upload.png" alt="screenshot" style="width:304px;height:228px;" onclick="window.open(this.src)" align="right"/></div></div>
+            <div class="log">self = &lt;tests.test_group1_upd.TestCasesGroup1 object at 0x000001AC3C0E2410&gt;<br/><br/>    def test_selecting_image_and_video_for_video_using_upload(self):<br/>        log = self.getLogs()<br/>        self.accessAppTab()<br/>        Group1 = Group1TestData.MyGroup1Items<br/>        appTab = AppTab(self.driver)<br/>        appTab.selectGroup1()<br/>        appTab.selectActionItem(Group1[10][&quot;item_name&quot;])<br/>        log.info(&quot;1. Select [video1] chatflow item in [group1].&quot;)<br/>        appTab.clickCameraIcon(Group1[10][&quot;item_camera_icon&quot;])<br/>        time.sleep(2)<br/>        log.info(&quot;2. Click the [camera] icon of [video1] chatflow action.&quot;)<br/>        appTab.uploadVideoItemImage()<br/>        time.sleep(4)<br/>        log.info(&quot;3. Upload a thumbnail image for [video1] chatflow action.&quot;)<br/>        appTab.clickVideoCameraIcon(Group1[10][&quot;item_video_camera_icon&quot;])<br/>        time.sleep(2)<br/>        log.info(&quot;4. Click the [video camera] icon of [video1] chatflow action.&quot;)<br/>        appTab.uploadVideoItemVideo()<br/>&gt;       WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, &quot;//li/video&quot;)))<br/><br/>test_group1_upd.py:504: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.support.wait.WebDriverWait (session=&quot;cf9bd4a952b0920b414396ead2733341&quot;)&gt;<br/>method = &lt;function presence_of_element_located.&lt;locals&gt;._predicate at 0x000001AC3C237D90&gt;, message = &#x27;&#x27;<br/><br/>    def until(self, method, message: str = &quot;&quot;):<br/>        &quot;&quot;&quot;Calls the method provided with the driver as an argument until the \<br/>        return value does not evaluate to ``False``.<br/>    <br/>        :param method: callable(WebDriver)<br/>        :param message: optional message for :exc:`TimeoutException`<br/>        :returns: the result of the last call to `method`<br/>        :raises: :exc:`selenium.common.exceptions.TimeoutException` if timeout occurs<br/>        &quot;&quot;&quot;<br/>        screen = None<br/>        stacktrace = None<br/>    <br/>        end_time = time.monotonic() + self._timeout<br/>        while True:<br/>            try:<br/>                value = method(self._driver)<br/>                if value:<br/>                    return value<br/>            except self._ignored_exceptions as exc:<br/>                screen = getattr(exc, &quot;screen&quot;, None)<br/>                stacktrace = getattr(exc, &quot;stacktrace&quot;, None)<br/>            time.sleep(self._poll)<br/>            if time.monotonic() &gt; end_time:<br/>                break<br/>&gt;       raise TimeoutException(message, screen, stacktrace)<br/><span class="error">E       selenium.common.exceptions.TimeoutException: Message: </span><br/><span class="error">E       Stacktrace:</span><br/><span class="error">E       Backtrace:</span><br/><span class="error">E       	(No symbol) [0x008D37D3]</span><br/><span class="error">E       	(No symbol) [0x00868B81]</span><br/><span class="error">E       	(No symbol) [0x0076B36D]</span><br/><span class="error">E       	(No symbol) [0x0079D382]</span><br/><span class="error">E       	(No symbol) [0x0079D4BB]</span><br/><span class="error">E       	(No symbol) [0x007D3302]</span><br/><span class="error">E       	(No symbol) [0x007BB464]</span><br/><span class="error">E       	(No symbol) [0x007D1215]</span><br/><span class="error">E       	(No symbol) [0x007BB216]</span><br/><span class="error">E       	(No symbol) [0x00790D97]</span><br/><span class="error">E       	(No symbol) [0x0079253D]</span><br/><span class="error">E       	GetHandleVerifier [0x00B4ABF2+2510930]</span><br/><span class="error">E       	GetHandleVerifier [0x00B78EC1+2700065]</span><br/><span class="error">E       	GetHandleVerifier [0x00B7C86C+2714828]</span><br/><span class="error">E       	GetHandleVerifier [0x00983480+645344]</span><br/><span class="error">E       	(No symbol) [0x00870FD2]</span><br/><span class="error">E       	(No symbol) [0x00876C68]</span><br/><span class="error">E       	(No symbol) [0x00876D4B]</span><br/><span class="error">E       	(No symbol) [0x00880D6B]</span><br/><span class="error">E       	BaseThreadInitThunk [0x75C9FA29+25]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A7E+286]</span><br/><span class="error">E       	RtlGetAppContainerNamedObjectPath [0x77A77A4E+238]</span><br/><br/>C:\Program Files\Python310\lib\site-packages\selenium\webdriver\support\wait.py:95: TimeoutException<br/> -------------------------------Captured log call-------------------------------- <br/>INFO     test_selecting_image_and_video_for_video_using_upload:test_group1_upd.py:493 1. Select [video1] chatflow item in [group1].
+INFO     test_selecting_image_and_video_for_video_using_upload:test_group1_upd.py:496 2. Click the [camera] icon of [video1] chatflow action.
+INFO     test_selecting_image_and_video_for_video_using_upload:test_group1_upd.py:499 3. Upload a thumbnail image for [video1] chatflow action.
+INFO     test_selecting_image_and_video_for_video_using_upload:test_group1_upd.py:502 4. Click the [video camera] icon of [video1] chatflow action.<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_another_flex</td>
+          <td class="col-duration">67.42</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div><div><img src="test_group1_upd.py_TestCasesGroup1_test_another_flex.png" alt="screenshot" style="width:304px;height:228px;" onclick="window.open(this.src)" align="right"/></div></div>
+            <div class="log">self = &lt;tests.test_group1_upd.TestCasesGroup1 object at 0x000001AC3C0E2950&gt;<br/><br/>    def test_another_flex(self):<br/>        log = self.getLogs()<br/>        self.accessAppTab()<br/>        Group1 = Group1TestData.MyGroup1Items<br/>        appTab = AppTab(self.driver)<br/>        appTab.selectGroup1()<br/>        appTab.addFlexMessageItem(Group1[13][&quot;item_name&quot;])<br/>        log.info(&quot;1. Select [flex_message] chatflow item in [group1].&quot;)<br/>        time.sleep(2)<br/>        appTab.clickAddFlexMessageContent(Group1[13][&quot;item_add_content&quot;])<br/>        time.sleep(1)<br/>        log.info(&quot;2. Click the [Add content of Flex message] link.&quot;)<br/>        appTab.addFlexMessageContent()<br/>        log.info(&quot;3. Enter a valid JSON-code in the [Flex Editor] textarea.&quot;)<br/>        appTab.saveFlexMessage()<br/>        log.info(&quot;4. Save the [flex_message] content.&quot;)<br/>        time.sleep(2)<br/>    <br/>&gt;       assert self.driver.find_element(By.XPATH, &quot;//div[@class=&#x27;content&#x27;]/p&quot;).text == &quot;my dog eats trash&quot;<br/><span class="error">E       AssertionError: assert &#x27;Invalid JSON&#x27; == &#x27;my dog eats trash&#x27;</span><br/><span class="error">E         - my dog eats trash</span><br/><span class="error">E         + Invalid JSON</span><br/><br/>test_group1_upd.py:567: AssertionError<br/> -------------------------------Captured log call-------------------------------- <br/>INFO     test_another_flex:test_group1_upd.py:556 1. Select [flex_message] chatflow item in [group1].
+INFO     test_another_flex:test_group1_upd.py:560 2. Click the [Add content of Flex message] link.
+INFO     test_another_flex:test_group1_upd.py:562 3. Enter a valid JSON-code in the [Flex Editor] textarea.
+INFO     test_another_flex:test_group1_upd.py:564 4. Save the [flex_message] content.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_create_new_group</td>
+          <td class="col-duration">26.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_create_new_group:test_group1_upd.py:19 1. Go to the [App] tab.
+INFO     test_create_new_group:test_group1_upd.py:24 2. Hover over [+Add new group] button.
+INFO     test_create_new_group:test_group1_upd.py:27 3. Click the [Group] option.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_create_text_items</td>
+          <td class="col-duration">48.04</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_create_text_items:test_group1_upd.py:41 1. Select [Group1] in the groups list.
+INFO     test_create_text_items:test_group1_upd.py:43 2. Click the [Text] option, enter 1st text item&#x27;s name and save.
+INFO     test_create_text_items:test_group1_upd.py:45 3. Click the [Text] option, enter 2nd text item&#x27;s name and save.
+INFO     test_create_text_items:test_group1_upd.py:47 4. Click the [Text] option, enter 3rd text item&#x27;s name and save.
+INFO     test_create_text_items:test_group1_upd.py:49 5. Click the [Text] option, enter 4th text item&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_enter_text_in_the_textfield</td>
+          <td class="col-duration">68.89</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_enter_text_in_the_textfield:test_group1_upd.py:59 1. Select [group1] in the groups list.
+INFO     test_enter_text_in_the_textfield:test_group1_upd.py:62 2. Select [textitem1] in the [group1] actions list.
+INFO     test_enter_text_in_the_textfield:test_group1_upd.py:65 3. Enter [text1] in the text field of the [textitem1] and press [Enter].
+INFO     test_enter_text_in_the_textfield:test_group1_upd.py:68 4. Select [textitem2] in the [group1] actions list.
+INFO     test_enter_text_in_the_textfield:test_group1_upd.py:71 5. Enter [text2] in the text field of the [textitem2] and press [Enter].
+INFO     test_enter_text_in_the_textfield:test_group1_upd.py:74 6. Select [textitem3] in the [group1] actions list.
+INFO     test_enter_text_in_the_textfield:test_group1_upd.py:77 7. Enter [text3] in the text field of the [textitem3] and press [Enter].
+INFO     test_enter_text_in_the_textfield:test_group1_upd.py:80 8. Select [textitem4] in the [group1] actions list.
+INFO     test_enter_text_in_the_textfield:test_group1_upd.py:83 9. Enter [text4] in the text field of the [textitem4] and press [Enter].<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_big_button_for_textitem1</td>
+          <td class="col-duration">50.01</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_big_button_for_textitem1:test_group1_upd.py:93 1. Click the [+ Add new button] option.
+INFO     test_adding_big_button_for_textitem1:test_group1_upd.py:95 2. Enter [text1 button] as the button&#x27;s name.
+INFO     test_adding_big_button_for_textitem1:test_group1_upd.py:98 3. Leave [Action] set as [Next action].
+INFO     test_adding_big_button_for_textitem1:test_group1_upd.py:100 4. Click the [Save] button.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_quick_reaction_buttons_for_textitem2</td>
+          <td class="col-duration">50.76</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:112 1. Click the [Quick reply] button of [textitem2].
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:114 2. Set the buttons name as [choice1]
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:117 3. Set [Action] as [Manually]
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:119 4. Select [textitem3] as a destination chatflow item.
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:121 5. Click the [Advanced] settings option.
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:123 6. Set [Save user data] as [choice].
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:125 7. Save the [Quick reply] button&#x27;s settings
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:128 8. Click the [Quick reply] button of [textitem2].
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:130 9. Set the buttons name as [choice2]
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:133 10. Set [Action] as [Manually]
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:135 11. Select [textitem3] as a destination chatflow item.
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:137 12. Click the [Advanced] settings option.
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:139 13. Set [Save user data] as [choice].
+INFO     test_adding_quick_reaction_buttons_for_textitem2:test_group1_upd.py:141 14. Save the [Quick reply] button&#x27;s settings<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_text_handler_for_textitem3</td>
+          <td class="col-duration">33.54</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_text_handler_for_textitem3:test_group1_upd.py:152 1. Click the [Text handler] button of [textitem3].
+INFO     test_adding_text_handler_for_textitem3:test_group1_upd.py:155 2. Set [Matching type] as [Match pattern of].
+INFO     test_adding_text_handler_for_textitem3:test_group1_upd.py:158 3. Set [Pattern type] as [Match all patterns].
+INFO     test_adding_text_handler_for_textitem3:test_group1_upd.py:162 4. Set [Action] as [Manually]
+INFO     test_adding_text_handler_for_textitem3:test_group1_upd.py:164 5. Select [textitem4] as a destination chatflow item.
+INFO     test_adding_text_handler_for_textitem3:test_group1_upd.py:166 6. Save the [Text handler] button&#x27;s settings<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_file_handler_for_textitem4</td>
+          <td class="col-duration">60.60</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_file_handler_for_textitem4:test_group1_upd.py:177 1. Click the [File handler] button of [textitem3].
+INFO     test_adding_file_handler_for_textitem4:test_group1_upd.py:179 2. Save the [File handler] button&#x27;s settings<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_carousel_items</td>
+          <td class="col-duration">37.45</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_carousel_items:test_group1_upd.py:187 1. Select [Group1] in the groups list.
+INFO     test_adding_carousel_items:test_group1_upd.py:189 2. Click the [Card] option, enter 1st carousel item&#x27;s name and save.
+INFO     test_adding_carousel_items:test_group1_upd.py:191 3. Click the [Card] option, enter 2nd carousel item&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_setting_api_data_source_carousel1</td>
+          <td class="col-duration">61.63</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_setting_api_data_source_carousel1:test_group1_upd.py:201 1. Select [carousel1] chatflow item in [group1].
+INFO     test_setting_api_data_source_carousel1:test_group1_upd.py:203 2. Select [API] data source option.
+INFO     test_setting_api_data_source_carousel1:test_group1_upd.py:206 3. Set [https://pre.bonp.me/api/service/recipes/?format=list] as the API URL and press Enter.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_big_button_carousel1</td>
+          <td class="col-duration">40.22</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_big_button_carousel1:test_group1_upd.py:216 1. Select [carousel1] chatflow item in [group1].
+INFO     test_adding_big_button_carousel1:test_group1_upd.py:218 2. Click the [+ Add new button] option of [carousel1] chatflow item.
+INFO     test_adding_big_button_carousel1:test_group1_upd.py:222 3. Enter [Next] as the button&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_setting_content_data_source_carousel2</td>
+          <td class="col-duration">49.05</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_setting_content_data_source_carousel2:test_group1_upd.py:232 1. Select [carousel2] chatflow item in [group1].
+INFO     test_setting_content_data_source_carousel2:test_group1_upd.py:234 2. Select [Content] data source option.
+INFO     test_setting_content_data_source_carousel2:test_group1_upd.py:236 3. Select the [Content] data source you have prepared (Events) for [carousel2].<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_quick_reaction_buttons_for_carousel2</td>
+          <td class="col-duration">54.76</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_quick_reaction_buttons_for_carousel2:test_group1_upd.py:249 1. Select [carousel2] chatflow item in [group1].
+INFO     test_adding_quick_reaction_buttons_for_carousel2:test_group1_upd.py:251 2. Click the [Quick reaction] option of [carousel2] chatflow item.
+INFO     test_adding_quick_reaction_buttons_for_carousel2:test_group1_upd.py:254 3. Enter the new [Quick reaction] button&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_image_carousel_item</td>
+          <td class="col-duration">43.88</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_image_carousel_item:test_group1_upd.py:263 1. Select [Group1] in the groups list.
+INFO     test_adding_image_carousel_item:test_group1_upd.py:265 2. Click the [Image Carousel] option, enter image carousel item&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_setting_content_data_source_image_carousel</td>
+          <td class="col-duration">65.20</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_setting_content_data_source_image_carousel:test_group1_upd.py:275 1. Select [image_carousel] chatflow item in [group1].
+INFO     test_setting_content_data_source_image_carousel:test_group1_upd.py:277 2. Select [Content] data source option.
+INFO     test_setting_content_data_source_image_carousel:test_group1_upd.py:279 3. Select the [Content] data source you have prepared (Events) for [image_carousel].<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_big_button_image_carousel</td>
+          <td class="col-duration">51.95</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_big_button_image_carousel:test_group1_upd.py:290 1. Select [carousel2] chatflow item in [group1].
+INFO     test_adding_big_button_image_carousel:test_group1_upd.py:292 2. Click the [+ Add new button] option of [carousel1] chatflow item.
+INFO     test_adding_big_button_image_carousel:test_group1_upd.py:295 3. Enter [Next] as the button&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_flex_message_item</td>
+          <td class="col-duration">27.40</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_flex_message_item:test_group1_upd.py:303 1. Select [Group1] in the groups list.
+INFO     test_adding_flex_message_item:test_group1_upd.py:305 2. Click the [Flex Message] option, enter flex message item&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_flex_message_content</td>
+          <td class="col-duration">31.27</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_flex_message_content:test_group1_upd.py:314 1. Select [flex_message] chatflow item in [group1].
+INFO     test_adding_flex_message_content:test_group1_upd.py:318 2. Click the [Add content of Flex message] link.
+INFO     test_adding_flex_message_content:test_group1_upd.py:320 3. Enter a valid JSON-code in the [Flex Editor] textarea.
+INFO     test_adding_flex_message_content:test_group1_upd.py:322 4. Save the [flex_message] content.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_quick_reaction_buttons_for_flex_message</td>
+          <td class="col-duration">64.34</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_quick_reaction_buttons_for_flex_message:test_group1_upd.py:332 1. Select [flex_message] chatflow item in [group1].
+INFO     test_adding_quick_reaction_buttons_for_flex_message:test_group1_upd.py:335 2. Click the [Quick reaction] option of [carousel2] chatflow item.
+INFO     test_adding_quick_reaction_buttons_for_flex_message:test_group1_upd.py:339 3. Enter the new [Quick reaction] button&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_image_map_item</td>
+          <td class="col-duration">30.60</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_image_map_item:test_group1_upd.py:348 1. Select [Group1] in the groups list.
+INFO     test_adding_image_map_item:test_group1_upd.py:350 2. Click the [Image Map] option, enter image map&#x27;s item name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_image_item</td>
+          <td class="col-duration">117.36</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_image_item:test_group1_upd.py:439 1. Select [Group1] in the groups list.
+INFO     test_adding_image_item:test_group1_upd.py:441 2. Click the [Image] option, enter image&#x27;s item name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_reaction_button_image_item</td>
+          <td class="col-duration">51.53</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_reaction_button_image_item:test_group1_upd.py:468 1. Select [image1] chatflow item in [group1].
+INFO     test_adding_reaction_button_image_item:test_group1_upd.py:470 2. Click the [Quick reaction] option of [image1] chatflow item.
+INFO     test_adding_reaction_button_image_item:test_group1_upd.py:473 3. Enter the new [Quick reaction] button&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_video_item1</td>
+          <td class="col-duration">23.90</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_video_item1:test_group1_upd.py:482 1. Select [Group1] in the groups list.
+INFO     test_adding_video_item1:test_group1_upd.py:484 2. Click the [Video] option, enter video&#x27;s item name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_reaction_button_video_item1</td>
+          <td class="col-duration">45.29</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_reaction_button_video_item1:test_group1_upd.py:514 1. Select [video1] chatflow item in [group1].
+INFO     test_adding_reaction_button_video_item1:test_group1_upd.py:516 2. Click the [Quick reaction] option of [video1] chatflow item.
+INFO     test_adding_reaction_button_video_item1:test_group1_upd.py:520 3. Enter the new [Quick reaction] button&#x27;s name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_adding_conditional_item</td>
+          <td class="col-duration">43.68</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_adding_conditional_item:test_group1_upd.py:528 1. Select [Group1] in the groups list.
+INFO     test_adding_conditional_item:test_group1_upd.py:530 2. Click the [Condition] option, enter condition&#x27;s item name and save.<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_group1_upd.py::TestCasesGroup1::test_setting_up_conditional_item</td>
+          <td class="col-duration">55.28</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>INFO     test_setting_up_conditional_item:test_group1_upd.py:539 1. Select [conditional] chatflow item in [group1].
+INFO     test_setting_up_conditional_item:test_group1_upd.py:541 2. Select [conditional] chatflow item in [group1].
+INFO     test_setting_up_conditional_item:test_group1_upd.py:543 3. Select [conditional] chatflow item in [group1].
+INFO     test_setting_up_conditional_item:test_group1_upd.py:545 4. Select [conditional] chatflow item in [group1].
+INFO     test_setting_up_conditional_item:test_group1_upd.py:547 4. Select [conditional] chatflow item in [group1].<br/></div></td></tr></tbody></table></body></html>

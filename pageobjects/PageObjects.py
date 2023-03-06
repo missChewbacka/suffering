@@ -1,9 +1,11 @@
 import time
-import os
 import pyautogui
 from selenium.webdriver import ActionChains
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
 
 
 class BotList:
@@ -11,15 +13,29 @@ class BotList:
     def __init__(self, driver):
         self.driver = driver
 
-    MyBot = (By.XPATH, "//*[contains(text(),'2023-02-03-bot')]")
+    MyBot = (By.XPATH, "//*[contains(text(), Sasha_bot)]")
 
     def openBot(self):
         return self.driver.find_element(*BotList.MyBot)
+
+    AddNewApp = (By.XPATH, "//button[@class='tooltip new icon plus-circle']")
+
+    def addNewApp(self):
+        return self.driver.find_element(*BotList.AddNewApp)
 
 
 class AppTab:
     def __init__(self, driver):
         self.driver = driver
+
+    BotName = (By.XPATH, "//input[@name='name']")
+    BotModules = (By.XPATH, "//li[@name='opts']/div/label/input[@type='checkbox']")
+    BotPlans = (By.XPATH, "//input[@name='plan']")
+    API10 = (By.XPATH, "//input[@name ='apiver' and @value='1']")
+    API20 = (By.XPATH, "//input[@name ='apiver' and @value='2']")
+    CompanyNameInputField = (By.XPATH, "//input[@target_name='com_id']")
+    SaveNewBot = (By.XPATH, "//button[@class='icon save']")
+    MyNewBot = (By.XPATH, "//tr[@i='0' and *[contains(text(), Sasha_bot)]]")
 
     AddNewGroup = (By.XPATH, "(//button[@class='icon plus-square'])[1]")
     GroupOption = (By.XPATH, "//dd[@class='new-group']")
@@ -28,15 +44,7 @@ class AppTab:
     ActionList = (By.XPATH, "//section[@class='actions']/ul/li/h5")
 
     AddNewItem = (By.XPATH, "(//button[@class='icon plus-square'])[2]")
-    SelectText = (By.XPATH, "//dd[@rt='text']")
-    SelectCard = (By.XPATH, "//dd[@rt='card']")
-    SelectImageCarousel = (By.XPATH, "//dd[@rt='imagecard']")
-    SelectImageMap = (By.XPATH, "//dd[@rt='imagemap']")
-    SelectImage = (By.XPATH, "//dd[@rt='image']")
-    SelectVideo = (By.XPATH, "//dd[@rt='video']")
-    SelectIfCondition = (By.XPATH, "//dd[@rt='logical']")
     SelectFlexMessage = (By.XPATH, "//dd[@rt='flex']")
-    SelectSendEmail = (By.XPATH, "//dd[@rt='notice']")
 
     ButtonsNameInputField = (By.XPATH, "//input[@name='label']")
 
@@ -68,37 +76,73 @@ class AppTab:
 
     ImageMapImage = (By.XPATH, "//div[@class='imagemap']")
     SaveImapAreaButton = (By.XPATH, "//button[@class='icon save']")
+    ImapAreaButtons = (By.XPATH, "//div[@class='react-btns']/label[@tp='btns']")
 
-    def addNewGroup(self):
+    SavedOption = (By.XPATH, "//span[@class='icon save tp-stock']")
+
+    # Flex file
+    my_txt_file_link = 'C:\\Users\\Professional\\PycharmProjects\\suffering-upd\\uploaddata\\flex.txt'
+    my_new_txt = 'C:\\Users\\Professional\\PycharmProjects\\suffering-upd\\uploaddata\\new_flex.txt'
+
+    def enterNewAppName(self, mybotname):
+        self.driver.find_element(*AppTab.BotName).clear()
+        return self.driver.find_element(*AppTab.BotName).send_keys(mybotname)
+
+    def selectAllBotModules(self):
+        modules = self.driver.find_elements(*AppTab.BotModules)
+        for module in modules[1:]:
+            module.click()
+        return
+
+    def selectProPlan(self):
+        plans = self.driver.find_elements(*AppTab.BotPlans)
+        for plan in plans:
+            if plan.get_attribute("data-value") == "pro":
+                plan.click()
+                time.sleep(1)
+                break
+
+    def selectAPI10(self):
+        return self.driver.find_element(*AppTab.API10).click()
+
+    def selectAPI20(self):
+        return self.driver.find_element(*AppTab.API20).click()
+
+    def selectEvolanyCompany(self):
+        time.sleep(2)
+        # self.driver.find_element(*AppTab.CompanyNameInputField).clear()
+        self.driver.find_element(*AppTab.CompanyNameInputField).click()
+        time.sleep(2)
+        companies = self.driver.find_elements(By.XPATH, "//ul[@id='form-item-autocomplete']/li")
+        for company in companies:
+            if company.text == "Evolany Co., Ltd.":
+                company.click()
+                time.sleep(1)
+                break
+        return
+
+    def saveNewApp(self):
+        time.sleep(2)
+        return self.driver.find_element(*AppTab.SaveNewBot).click()
+
+    def openNewBot(self):
+        time.sleep(2)
+        return self.driver.find_element(*AppTab.MyNewBot).click()
+
+    def addNewGroup(self, mygroupname):
         action = ActionChains(self.driver)
         action.move_to_element(self.driver.find_element(*AppTab.AddNewGroup)).perform()
         time.sleep(2)
-        action.click(self.driver.find_element(*AppTab.GroupOption)).send_keys("group1" + Keys.ENTER).perform()
+        action.click(self.driver.find_element(*AppTab.GroupOption)).send_keys(mygroupname + Keys.ENTER).perform()
         time.sleep(2)
         return
 
-    def addTextItem(self, itemname):
+    def addGroup1Item(self, mygroup1item, itemname):
         action = ActionChains(self.driver)
         action.move_to_element(self.driver.find_element(*AppTab.AddNewItem)).perform()
         time.sleep(1)
-        action.click(self.driver.find_element(*AppTab.SelectText)).send_keys(itemname + Keys.ENTER).perform()
-        time.sleep(1)
-        return
-
-    def addCardItem(self, itemname):
-        action = ActionChains(self.driver)
-        action.move_to_element(self.driver.find_element(*AppTab.AddNewItem)).perform()
-        time.sleep(1)
-        action.click(self.driver.find_element(*AppTab.SelectCard)).send_keys(itemname + Keys.ENTER).perform()
-        time.sleep(1)
-        return
-
-    def addImageCarouselItem(self, itemname):
-        action = ActionChains(self.driver)
-        action.move_to_element(self.driver.find_element(*AppTab.AddNewItem)).perform()
-        time.sleep(1)
-        action.click(self.driver.find_element(*AppTab.SelectImageCarousel)).send_keys(itemname + Keys.ENTER).perform()
-        time.sleep(1)
+        action.click(self.driver.find_element(By.XPATH, mygroup1item)).send_keys(itemname + Keys.ENTER).perform()
+        time.sleep(2)
         return
 
     def addFlexMessageItem(self, itemname):
@@ -110,38 +154,6 @@ class AppTab:
         action.click(self.driver.find_element(*AppTab.FlexMessageConfirm)).perform()
         time.sleep(1)
         action.send_keys(Keys.DELETE + itemname + Keys.ENTER).perform()
-        time.sleep(1)
-        return
-
-    def addImageMapItem(self, itemname):
-        action = ActionChains(self.driver)
-        action.move_to_element(self.driver.find_element(*AppTab.AddNewItem)).perform()
-        time.sleep(1)
-        action.click(self.driver.find_element(*AppTab.SelectImageMap)).send_keys(itemname + Keys.ENTER).perform()
-        time.sleep(1)
-        return
-
-    def addImageItem(self, itemname):
-        action = ActionChains(self.driver)
-        action.move_to_element(self.driver.find_element(*AppTab.AddNewItem)).perform()
-        time.sleep(1)
-        action.click(self.driver.find_element(*AppTab.SelectImage)).send_keys(itemname + Keys.ENTER).perform()
-        time.sleep(1)
-        return
-
-    def addVideoItem(self, itemname):
-        action = ActionChains(self.driver)
-        action.move_to_element(self.driver.find_element(*AppTab.AddNewItem)).perform()
-        time.sleep(1)
-        action.click(self.driver.find_element(*AppTab.SelectVideo)).send_keys(itemname + Keys.ENTER).perform()
-        time.sleep(1)
-        return
-
-    def addConditionItem(self, itemname):
-        action = ActionChains(self.driver)
-        action.move_to_element(self.driver.find_element(*AppTab.AddNewItem)).perform()
-        time.sleep(1)
-        action.click(self.driver.find_element(*AppTab.SelectIfCondition)).send_keys(itemname + Keys.ENTER).perform()
         time.sleep(1)
         return
 
@@ -159,43 +171,60 @@ class AppTab:
             if MyActionItem.text == myactionitem:
                 MyActionItem.click()
                 break
+        time.sleep(1)
         return
 
     def enterTextItemsText(self, my_element, my_text):
+        time.sleep(1)
         return self.driver.find_element(By.XPATH, my_element).send_keys(my_text + Keys.ENTER)
 
     def clickBigButton(self, my_big_button):
-        return self.driver.find_element(By.XPATH, my_big_button).click()
+        time.sleep(1)
+        self.driver.find_element(By.XPATH, my_big_button).click()
+        time.sleep(1)
+        return
 
     def clickQuickReactionButton(self, my_quick_reaction_button):
+        time.sleep(1)
         return self.driver.find_element(By.XPATH, my_quick_reaction_button).click()
 
     def clickTextHandlerButton(self, my_text_handler_button):
+        time.sleep(1)
         return self.driver.find_element(By.XPATH, my_text_handler_button).click()
 
     def selectMatchingType(self, my_type):
+        time.sleep(1)
         self.driver.find_element(*AppTab.DropdownMatchingTypes).click()
         MyMatchingTypes = self.driver.find_elements(*AppTab.MatchingTypes)
         for MyMatchingType in MyMatchingTypes:
             if MyMatchingType.get_attribute("val") == my_type:
                 MyMatchingType.click()
                 break
+        time.sleep(1)
         return
 
     def selectPatternType(self, my_pattern):
+        time.sleep(1)
         MyPatternTypes = self.driver.find_elements(*AppTab.PatternTypes)
         for MyPatternType in MyPatternTypes:
             if MyPatternType.get_attribute("val") == my_pattern:
                 MyPatternType.click()
                 break
+        time.sleep(1)
         return
 
     def clickFileHandlerButton(self, my_file_handler_button):
-        return self.driver.find_element(By.XPATH, my_file_handler_button).click()
+        time.sleep(1)
+        self.driver.find_element(By.XPATH, my_file_handler_button).click()
+        time.sleep(1)
+        return
 
     def enterButtonsName(self, big_button_name):
+        time.sleep(1)
         self.driver.find_element(*AppTab.ButtonsNameInputField).clear()
-        return self.driver.find_element(*AppTab.ButtonsNameInputField).send_keys(big_button_name)
+        self.driver.find_element(*AppTab.ButtonsNameInputField).send_keys(big_button_name)
+        time.sleep(1)
+        return
 
     def selectNextAction(self):
         self.driver.find_element(*AppTab.ActionNextAction).click()
@@ -215,33 +244,44 @@ class AppTab:
         return self.driver.find_element(*AppTab.UkeyInputField).send_keys(myukey)
 
     def saveSettings(self):
-        return self.driver.find_element(*AppTab.SaveSettings).click()
+        self.driver.find_element(*AppTab.SaveSettings).click()
+        time.sleep(1)
+        return
 
     def selectDataSourceAPI(self, myitemsapidatasource):
+        time.sleep(2)
         return self.driver.find_element(By.XPATH, myitemsapidatasource).click()
 
     def enterAPIDataSourceURL(self, myapiurl):
-        time.sleep(1)
+        time.sleep(2)
         self.driver.find_element(*AppTab.APIDataSourceURL).clear()
+        time.sleep(1)
         return self.driver.find_element(*AppTab.APIDataSourceURL).send_keys(myapiurl + Keys.ENTER)
 
     def selectDataSourceContent(self, myitemscontentdatasource):
+        time.sleep(1)
         return self.driver.find_element(By.XPATH, myitemscontentdatasource).click()
 
     def selectYourContentSource(self, mycontenticon, mysourceen, mysourcejp):
+        time.sleep(1)
         self.driver.find_element(By.XPATH, mycontenticon).click()
+        time.sleep(1)
         ContentSourceOptions = self.driver.find_elements(*AppTab.ContentDataSourceOptions)
         for ContentSourceOption in ContentSourceOptions:
             if ContentSourceOption.text == mysourceen or ContentSourceOption.text == mysourcejp:
                 ContentSourceOption.click()
                 break
+        time.sleep(1)
         return
 
     def clickAddFlexMessageContent(self, myflexaddcontent):
-        return self.driver.find_element(By.XPATH, myflexaddcontent).click()
+        time.sleep(1)
+        self.driver.find_element(By.XPATH, myflexaddcontent).click()
+        time.sleep(1)
+        return
 
     def addFlexMessageContent(self):
-        with open('C:\\Users\\Professional\\PycharmProjects\\suffering\\pageobjects\\flex.txt', 'r') as text_file:
+        with open(AppTab.my_txt_file_link, 'r') as text_file:
             lines = text_file.readlines()
         for line in lines:
             self.driver.find_element(*AppTab.FlexMessageTextarea).send_keys(line)
@@ -249,6 +289,18 @@ class AppTab:
 
     def saveFlexMessage(self):
         return self.driver.find_element(*AppTab.FlexMessageSaveButton).click()
+
+    def selectImagemapAreaButton(self, myarea):
+        ImagemapAreaButtons = self.driver.find_elements(*AppTab.ImapAreaButtons)
+        for ImagemapAreaButton in ImagemapAreaButtons:
+            if ImagemapAreaButton.text == myarea:
+                ImagemapAreaButton.click()
+                break
+        return
+
+    def setImagemapAreaNextAction(self, my_imap_next_item, my_area_button):
+        self.driver.find_element(By.XPATH, my_area_button).clear()
+        return self.driver.find_element(By.XPATH, my_area_button).send_keys(my_imap_next_item + Keys.ENTER)
 
     def clickCameraIcon(self, mycameraicon):
         return self.driver.find_element(By.XPATH, mycameraicon).click()
@@ -287,11 +339,13 @@ class AppTab:
 
     def uploadVideoItemImageByLink(self, myimageinput):
         self.driver.find_element(By.XPATH, myimageinput).click()
-        return self.driver.find_element(By.XPATH, myimageinput).send_keys("https://anybot-prerelease.s3.amazonaws.com/588_1673836819_0_newfmt.png" + Keys.ENTER)
+        return self.driver.find_element(By.XPATH, myimageinput).send_keys(
+            "https://anybot-prerelease.s3.amazonaws.com/588_1673836819_0_newfmt.png" + Keys.ENTER)
 
     def uploadVideoItemVideoByLink(self, myvideoinput):
         self.driver.find_element(By.XPATH, myvideoinput).click()
-        return self.driver.find_element(By.XPATH, myvideoinput).send_keys("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" + Keys.ENTER)
+        return self.driver.find_element(By.XPATH, myvideoinput).send_keys(
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" + Keys.ENTER)
 
     def clickImageMapImage(self):
         return self.driver.find_element(*AppTab.ImageMapImage).click()
@@ -352,22 +406,226 @@ class AppTab:
     def selectElseAction(self, elseoption, myelseoption):
         return self.driver.find_element(By.XPATH, elseoption).send_keys(myelseoption + Keys.ENTER)
 
-
-
-
-
-
-
-
-
-
-
+    # def selectSavedButtonsOption(self):
+    # return self.driver.find_element(*AppTab.SavedOption).click()
 
     def expandMenu(self):
         return self.driver.find_element(*AppTab.ThreeDots)
 
     def selectMenuOptions(self):
         return self.driver.find_elements(*AppTab.MenuOptions)
+
+
+class EventsTab:
+    def __init__(self, driver):
+        self.driver = driver
+
+    NewEvent = (By.XPATH, "//button[@class='new icon plus-square']")
+    EventsURL = (By.XPATH, "//input[@name='linkto']")
+    EventsImage = (By.XPATH, "(//div[@class='form-item-file'])[1]")
+    EventsTitle = (By.XPATH, "//input[@name='title']")
+    EventsDescription = (By.XPATH, "//textarea[@name='desc']")
+    EventsSeats = (By.XPATH, "//input[@name='seats']")
+    SaveEventButton = (By.XPATH, "//button[@class='icon save']")
+    OkButton = (By.XPATH, "//div[@class='content']/footer/button")
+
+    def clickNewEventButton(self):
+        return self.driver.find_element(*EventsTab.NewEvent).click()
+
+    def enterEventsURL(self, myeventurl):
+        self.driver.find_element(*EventsTab.EventsURL).clear()
+        self.driver.find_element(*EventsTab.EventsURL).send_keys(myeventurl)
+        return
+
+    def uploadEvents1Image(self):
+        self.driver.find_element(*EventsTab.EventsImage).click()
+        time.sleep(1)
+        pyautogui.write(r'C:\Users\Professional\PycharmProjects\suffering-upd\uploaddata\event_img1.jpg')
+        pyautogui.press('enter')
+        time.sleep(1)
+        return
+
+    def uploadEvents2Image(self):
+        self.driver.find_element(*EventsTab.EventsImage).click()
+        time.sleep(1)
+        pyautogui.write(r'C:\Users\Professional\PycharmProjects\suffering-upd\uploaddata\event_img2.jpg')
+        pyautogui.press('enter')
+        time.sleep(1)
+        return
+
+    def uploadEvents3Image(self):
+        self.driver.find_element(*EventsTab.EventsImage).click()
+        time.sleep(1)
+        pyautogui.write(r'C:\Users\Professional\PycharmProjects\suffering-upd\uploaddata\event_img3.jpg')
+        pyautogui.press('enter')
+        time.sleep(2)
+        return
+
+    def enterEventsTitle(self, myeventtitle):
+        self.driver.find_element(*EventsTab.EventsTitle).clear()
+        self.driver.find_element(*EventsTab.EventsTitle).send_keys(myeventtitle + Keys.ENTER)
+        time.sleep(1)
+        return
+
+    def enterEventsDescription(self, myeventdesc):
+        self.driver.find_element(*EventsTab.EventsDescription).clear()
+        self.driver.find_element(*EventsTab.EventsDescription).send_keys(myeventdesc + Keys.ENTER)
+        time.sleep(1)
+        return
+
+    def enterEventsSeats(self, myeventseats):
+        self.driver.find_element(*EventsTab.EventsSeats).clear()
+        self.driver.find_element(*EventsTab.EventsSeats).send_keys(myeventseats + Keys.ENTER)
+        time.sleep(1)
+        return
+
+    def saveEventSettings(self):
+        time.sleep(2)
+        self.driver.find_element(*EventsTab.SaveEventButton).click()
+        time.sleep(2)
+        self.driver.find_element(*EventsTab.OkButton).click()
+        time.sleep(2)
+        WebDriverWait(self.driver, 15).until(
+            EC.presence_of_element_located((By.XPATH, "//button[@class='new icon plus-square']")))
+        return
+
+
+class ReservationManageTab:
+    def __init__(self, driver):
+        self.driver = driver
+
+    MyTopMenuTab = (By.XPATH, "//nav[@class='btns app-menus']/a")
+    StoreMenuTab = (By.XPATH, "//li[@fid='store_list']")
+    AddNewStoreButton = (By.XPATH, "//button[@class='new icon plus-square']")
+    StoreURL = (By.XPATH, "//input[@name='uri']")
+    StoreName = (By.XPATH, "//input[@name='title']")
+    StoreImage = (By.XPATH, "//div[@class='form-item-file']")
+    StoreDesc = (By.XPATH, "//textarea[@name='desc']")
+    StoreCategory = (By.XPATH, "//input[@target_name='category']")
+    StoreCountry = (By.XPATH, "//input[@target_name='country']")
+    StoreAddress = (By.XPATH, "//input[@name='address']")
+    StoreLatitude = (By.XPATH, "//input[@name='lat']")
+    StoreLongitude = (By.XPATH, "//input[@name='lng']")
+    StoreWeekendStartTime = (By.XPATH, "//select[@name='open_time.hour']")
+    StoreWeekendEndTime = (By.XPATH, "//select[@name='close_time.hour']")
+    StoreCapacitySwitch = (By.XPATH, "(//b[@class='form-item-switch'])[1]")
+    StoreRMS = (By.XPATH, "//li[@name='seats_max']/div/div[@class='ui-dropdown form-item']")
+    StoreRMSOptions = (By.XPATH, "//ul[@class='ui-dropdown-opts']/li")
+    StoreBreakTime = (By.XPATH, "//textarea[@name='break_time']")
+    SaveStoreSettings = (By.XPATH, "(//div[@class='buttons']/button)[6]")
+
+    def accessReservationManageTab(self):
+        myTabs = self.driver.find_elements(*ReservationManageTab.MyTopMenuTab)
+        for myTab in myTabs:
+            if myTab.get_attribute("name") == "rms_view":
+                myTab.click()
+                break
+        return
+
+    def selectStoreMenuTab(self):
+        return self.driver.find_element(*ReservationManageTab.StoreMenuTab).click()
+
+    def addNewStore(self):
+        return self.driver.find_element(*ReservationManageTab.AddNewStoreButton).click()
+
+    def enterStoreURL(self, mystoreurl):
+        self.driver.find_element(*ReservationManageTab.StoreURL).clear()
+        self.driver.find_element(*ReservationManageTab.StoreURL).send_keys(mystoreurl)
+        time.sleep(1)
+        return
+
+    def enterStoreName(self, mystorename):
+        self.driver.find_element(*ReservationManageTab.StoreName).clear()
+        self.driver.find_element(*ReservationManageTab.StoreName).send_keys(mystorename)
+        time.sleep(1)
+        return
+
+    def uploadStoreImage(self):
+        self.driver.find_element(*ReservationManageTab.StoreImage).click()
+        time.sleep(1)
+        pyautogui.write(r'C:\Users\Professional\PycharmProjects\suffering-upd\uploaddata\flamingo.jpg')
+        pyautogui.press('enter')
+        time.sleep(1)
+        return
+
+    def enterStoreDescription(self, mystoredescription):
+        self.driver.find_element(*ReservationManageTab.StoreDesc).clear()
+        self.driver.find_element(*ReservationManageTab.StoreDesc).send_keys(mystoredescription)
+        time.sleep(1)
+        return
+
+    def enterStoreCategory(self, mystorecategory):
+        self.driver.find_element(*ReservationManageTab.StoreCategory).clear()
+        self.driver.find_element(*ReservationManageTab.StoreCategory).send_keys(mystorecategory + Keys.ENTER)
+        time.sleep(1)
+        return
+
+    def enterStoreCountry(self, mystorecountry):
+        self.driver.find_element(*ReservationManageTab.StoreCountry).clear()
+        self.driver.find_element(*ReservationManageTab.StoreCountry).send_keys(mystorecountry + Keys.ENTER)
+        time.sleep(1)
+        return
+
+    def enterStoreAddress(self, mystoreaddress):
+        self.driver.find_element(*ReservationManageTab.StoreAddress).clear()
+        self.driver.find_element(*ReservationManageTab.StoreAddress).send_keys(mystoreaddress + Keys.ENTER)
+        time.sleep(1)
+        return
+
+    def enterStoreLatitude(self, mystorelat):
+        self.driver.find_element(*ReservationManageTab.StoreLatitude).clear()
+        self.driver.find_element(*ReservationManageTab.StoreLatitude).send_keys(mystorelat + Keys.ENTER)
+        time.sleep(1)
+        return
+
+    def enterStoreLongitude(self, mystorelng):
+        self.driver.find_element(*ReservationManageTab.StoreLongitude).clear()
+        self.driver.find_element(*ReservationManageTab.StoreLongitude).send_keys(mystorelng + Keys.ENTER)
+        time.sleep(1)
+        return
+
+    def selectWeekendStartTime(self):
+        select = Select(self.driver.find_element(*ReservationManageTab.StoreWeekendStartTime))
+        return select.select_by_visible_text("11")
+
+    def selectWeekendEndTime(self):
+        select = Select(self.driver.find_element(*ReservationManageTab.StoreWeekendEndTime))
+        return select.select_by_visible_text("17")
+
+    def turnOnStoreCapacitySwitch(self):
+        return self.driver.find_element(*ReservationManageTab.StoreCapacitySwitch).click()
+
+    def selectStoreRMSCapacity(self):
+        self.driver.find_element(*ReservationManageTab.StoreRMS).click()
+        WebDriverWait(self.driver, 15).until(
+            EC.presence_of_element_located((By.XPATH, "//ul[@class='ui-dropdown-opts']")))
+        RMSOptions = self.driver.find_elements(*ReservationManageTab.StoreRMSOptions)
+        for RMSOption in RMSOptions:
+            if RMSOption.get_attribute("val") == "1":
+                RMSOption.click()
+            break
+        return
+
+    def enterStoreBreakTime(self, mystorebreaktime):
+        self.driver.find_element(*ReservationManageTab.StoreBreakTime).clear()
+        self.driver.find_element(*ReservationManageTab.StoreBreakTime).send_keys(mystorebreaktime)
+        time.sleep(1)
+        return
+
+    def saveStoreSetting(self):
+        time.sleep(1)
+        self.driver.find_element(*ReservationManageTab.SaveStoreSettings).click()
+        time.sleep(1)
+        return
+
+    def accessAppTab(self):
+        myTabs = self.driver.find_elements(*ReservationManageTab.MyTopMenuTab)
+        for myTab in myTabs:
+            if myTab.get_attribute("name") == "bot_edit_view":
+                myTab.click()
+                break
+        return
+
 
 
 class CouponsTab:
@@ -410,7 +668,6 @@ class CouponsTab:
         return self.driver.find_element(*CouponsTab.DeleteCouponIcon).click()
 
 
-
 class CouponPopup:
     def __init__(self, driver):
         self.driver = driver
@@ -429,7 +686,7 @@ class CouponPopup:
 
     CouponIssueLImit = (By.XPATH, "//input[@name='amount']")
 
-    #add period options here
+    # add period options here
     DateRange = (By.XPATH, "//div[@class='form-type-checkbox']/label[@data-value='1']")
     DaysFromIssue = (By.XPATH, "//div[@class='form-type-checkbox']/label[@data-value='2']")
 
@@ -444,7 +701,7 @@ class CouponPopup:
 
     CouponSegment = (By.XPATH, "//input[@class='autocomplete']")
 
-    #add conditions options here
+    # add conditions options here
     OneTimeOnly = (By.XPATH, "//dd[@name='times']/div/label[@data-value='1']")
     OptionOneTimeOnly = (By.XPATH, "//input[@name='times' and @value='1']")
 
@@ -473,20 +730,20 @@ class CouponPopup:
 
     CouponCloseIcon = (By.XPATH, "//i[@class='icon close']")
 
-    #Preview popup page objects
+    # Preview popup page objects
     PreviewSendButton = (By.XPATH, "//button[@class='icon send']")
 
-    #Coupons alert popup
+    # Coupons alert popup
     AlertCloseIcon = (By.XPATH, "//i[@class='icon close']")
 
-    #Sent and unsent coupons delete alert popup
+    # Sent and unsent coupons delete alert popup
     DeleteCouponOKButton = (By.XPATH, "//button[@class='a1']")
 
     def enterCouponName(self, name):
         self.driver.find_element(*CouponPopup.CouponName).clear()
         return self.driver.find_element(*CouponPopup.CouponName).send_keys(name)
 
-    #image upload here
+    # image upload here
 
     def enterCouponDiscountValue(self, dis_val):
         self.driver.find_element(*CouponPopup.CouponDiscountValue).clear()
@@ -508,7 +765,7 @@ class CouponPopup:
         self.driver.find_element(*CouponPopup.CouponIssueLImit).clear()
         return self.driver.find_element(*CouponPopup.CouponIssueLImit).send_keys(issue_val)
 
-    #add period verification/selection options here
+    # add period verification/selection options here
     def selectDateRangeOption(self):
         if self.driver.find_element(*CouponPopup.DateRange).get_attribute("class") == "sel-option checkbox on":
             return self.driver.find_element(*CouponPopup.CouponDateRange)
@@ -548,7 +805,7 @@ class CouponPopup:
     def enterCouponSegment(self):
         return self.driver.find_element(*CouponPopup.CouponSegment)
 
-    #add conditions options here
+    # add conditions options here
     def selectOneTimeOnly(self):
         if self.driver.find_element(*CouponPopup.OneTimeOnly).get_attribute("class") == "sel-option radio on":
             return self.driver.find_element(*CouponPopup.OptionOneTimeOnly)
@@ -616,20 +873,3 @@ class CouponPopup:
 
     def submitDeleteUnsentCoupon(self):
         return self.driver.find_element(*CouponPopup.DeleteCouponOKButton).click()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

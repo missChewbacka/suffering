@@ -22,10 +22,17 @@ class BaseClass:
         logger.setLevel(logging.DEBUG)
         return logger
 
+    def addNewApp(self):
+        botList = BotList(self.driver)
+        botList.addNewApp().click()
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//h2")))
+
     def accessAppTab(self):
         botList = BotList(self.driver)
         botList.openBot().click()
-        time.sleep(10)
+        time.sleep(1)
+        WebDriverWait(self.driver, 1000).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='header-bot-name']")))
 
     def accessCouponsTab(self):
         botList = BotList(self.driver)
@@ -35,6 +42,22 @@ class BaseClass:
         submenuOptions = appTab.selectMenuOptions()
         for submenuOption in submenuOptions:
             if submenuOption.get_attribute("name") == "coupon_list_view":
+                submenuOption.click()
+                break
+        time.sleep(2)
+
+    def accessEventsTab(self):
+        botList = BotList(self.driver)
+        botList.openBot().click()
+        appTab = AppTab(self.driver)
+        WebDriverWait(self.driver, 15).until(
+            EC.presence_of_element_located((By.XPATH, "//a[@class='miniapps icon dots-v']")))
+        appTab.expandMenu().click()
+        WebDriverWait(self.driver, 15).until(
+            EC.presence_of_element_located((By.XPATH, "//section[@class='submenus']")))
+        submenuOptions = appTab.selectMenuOptions()
+        for submenuOption in submenuOptions:
+            if submenuOption.get_attribute("name") == "event_list_view":
                 submenuOption.click()
                 break
         time.sleep(2)
